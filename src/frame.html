@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preview</title>
+</head>
+
+<body>
+    <div id="test">hello world</div>
+
+    <iframe width="2000px" height="10000px" id="frame" src='http://localhost:8080/michael-test'
+        sandbox="allow-scripts allow-same-origin allow-modal"> </iframe>
+
+    <script>
+        setTimeout(() => {
+            sendMessage('hello world');
+        }, 5000);
+
+        window.addEventListener('message', (event) => {
+            console.log(event.data);
+        });
+
+        function sendMessage(message) {
+            const frame = document.getElementById('frame');
+            frame.contentWindow.postMessage(message, 'http://localhost:8080/michael-test');
+        }
+    </script>
+</body>
+
+</html>
