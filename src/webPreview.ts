@@ -30,10 +30,17 @@ class WebPreview extends Disposable implements vscode.Disposable {
         this._panel = vscode.window.createWebviewPanel('WebPreview', 'Web Preview',  showOptions, options);
 
         let file = getExtensionFile(context, "dist", "frame.html");
+        let html = fs.readFileSync(file, 'utf8');
 
-        let test = fs.readFileSync(file, 'utf8');
+        let schemaFile = getExtensionFile(context, "src/testFiles", "booking.schema.json");
+        let uiSchemaFile = getExtensionFile(context, "src/testFiles", "booking.uischema.json");
+        let schema = fs.readFileSync(schemaFile, 'utf8');
+        let uiSchema = fs.readFileSync(uiSchemaFile, 'utf8');
 
-        this._panel.webview.html = test;
+        //html = html.replace("{SCHEMA}", "SCM:" + schema);
+        //html = html.replace("{UISCHEMA}", "UISCM:" + uiSchema);
+
+        this._panel.webview.html = html;
 
         this._register(this._panel);
     }

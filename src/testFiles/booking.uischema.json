@@ -1,0 +1,24 @@
+{
+    "type": "VerticalLayout",
+    "elements": [
+        {
+            "type": "Group",
+            "label": "Credentials",
+            "elements": [
+                {
+                    "type": "HorizontalLayout",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/DPD_DELISID"
+                        },
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/PASSWORD"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
