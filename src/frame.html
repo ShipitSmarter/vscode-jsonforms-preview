@@ -14,17 +14,24 @@
         sandbox="allow-scripts allow-same-origin allow-modal"> </iframe>
 
     <script>
-        setTimeout(() => {
-            sendMessage('hello world');
-        }, 5000);
+        //setTimeout(() => {
+         //   sendMessage('hello world');
+        //}, 5000);
 
         window.addEventListener('message', (event) => {
-            console.log(event.data);
+            receiveMessage(event.data);
         });
 
         function sendMessage(message) {
             const frame = document.getElementById('frame');
             frame.contentWindow.postMessage(message, 'http://localhost:8080/michael-test');
+        }
+
+        function receiveMessage(message) {
+            console.log(event.data);
+            if(message == "ready"){
+                sendMessage("hello world");
+            }
         }
     </script>
 </body>
