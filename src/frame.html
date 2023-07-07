@@ -13,6 +13,8 @@
     <iframe width="2000px" height="10000px" id="frame" src='http://localhost:8080/michael-test'
         sandbox="allow-scripts allow-same-origin allow-modal"> </iframe>
 
+        <div></div>
+
     <script>
         //setTimeout(() => {
          //   sendMessage('hello world');
@@ -31,6 +33,9 @@
             console.log(event.data);
             if(message == "ready"){
                 sendMessage("hello world");
+
+                //sendMessage("{SCHEMA}");
+                //sendMessage("{UISCHEMA}");
             }
         }
     </script>
