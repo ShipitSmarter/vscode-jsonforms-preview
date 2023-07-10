@@ -4,7 +4,17 @@ This is the README for your extension "json-forms-web-preview". After writing up
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+This extension allows the previewing of JSON Schemas in a WebView panel using your own rendering URL. Allowing you to see how your JSON Forms UIs will look in your own application, using your own styles and custom renderers.
+
+This extension will load a WebView panel that will then load up a pre-configured URL. You will have to create the renderer playground server yourself. And it must follow this pattern.
+
+1. Once your playground is ready, send the string `ready` to the parent browser window using `window.parent.postMessage('ready', '*')`
+2. You will then receive the Schema file through a message event. It will be formatted as `SCM:{DATA}` The schema file will be BASE64 encoded where `{DATA}` sits in the previous pattern, you can use `atob` to decode this message
+3. Once you have recieved and decoded this message, send `GOTSCM` to the parent window
+4. You will then recieve the UI Schema in the same style as step 2, but with the pattern `UISCM:{DATA}`
+5. Respond with `GOTUISCM`
+6. You may then recieve persisted data from the extension via a message event with the pattern `DATA:{DATA}` where `{DATA}` is the stringified JSON data of the persisted data, this is NOT BASE4 encoded.
+7. Your rendering page should now have both schema files, and any persisted data.
 
 For example if there is an image subfolder under your extension project workspace:
 
