@@ -52,6 +52,23 @@
           "when": "resourceExtname == .json|| resourceExtname == .yaml"
         }
       ]
+    },
+    "configuration":{
+      "title": "jsonFormsWebPreview",
+      "properties": {
+        "jsonFormsWebPreview.renderUrl":{
+          "type": "string",
+          "description": "URL to render JSON Schema",
+          "pattern": "(http:|https:)+[^\\s]+[\\w]",
+          "default": null
+        },
+				"jsonFormsWebPreview.debounceTimeout": {
+					"type": "number",
+					"default": 500,
+					"description": "Amount of ms to wait with no changes before reloading preview",
+					"minimum": 200
+				}
+      }
     }
   },
   "scripts": {

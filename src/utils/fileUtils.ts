@@ -26,19 +26,19 @@ export function getExtension(path: string): string | undefined{
 }
 
 export function isSchemaFile(filePath: string): boolean{
-    return CONSTANTS.SchemaExtensions.some((ext:string) => filePath.endsWith(`.${ext}`) || filePath.endsWith(`${path.sep}${ext}`));
+    return CONSTANTS.schemaExtensions.some((ext:string) => filePath.endsWith(`.${ext}`) || filePath.endsWith(`${path.sep}${ext}`));
 }
 
 export function getCompanionFilePath(filePath: string): string | undefined{
     const directory = path.dirname(filePath);
     const fileExt = getExtension(filePath);
-    const isSchema = CONSTANTS.SchemaExtensions.some((ext:string) => filePath.endsWith(`.${ext}`) || filePath.endsWith(`${path.sep}${ext}`));
-    const schemaExt = isSchema ? `${CONSTANTS.SchemaFile}.${fileExt}` : `${CONSTANTS.UiSchemaFile}.${fileExt}`;
+    const isSchema = CONSTANTS.schemaExtensions.some((ext:string) => filePath.endsWith(`.${ext}`) || filePath.endsWith(`${path.sep}${ext}`));
+    const schemaExt = isSchema ? `${CONSTANTS.schemaFile}.${fileExt}` : `${CONSTANTS.uiSchemaFile}.${fileExt}`;
     const pathPrefix = filePath.replace(schemaExt, "");
 
     const mapFiles = (ext:string) => `${pathPrefix}${ext}`;
 
-    const validFiles = isSchema ? CONSTANTS.UiSchemaExtensions.map(mapFiles) : CONSTANTS.SchemaExtensions.map(mapFiles);
+    const validFiles = isSchema ? CONSTANTS.uiSchemaExtensions.map(mapFiles) : CONSTANTS.schemaExtensions.map(mapFiles);
 
     for (const file of validFiles) {
         if (fs.existsSync(file)) {

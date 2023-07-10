@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as YAML from 'yaml';
 import path = require("path");
-import { Buffer } from "buffer";
+import { CONSTANTS } from "./constants";
 import { debounce } from './utils/debounce';
 import { showMessage, MessageType } from './utils/messages';
 import { Disposable } from './utils/dispose';
@@ -26,6 +26,7 @@ class WebPreview extends Disposable implements vscode.Disposable {
     private _editorInstance: any;
     private _schemaPath: any;
     private _uiSchemaPath: any;
+    private _url: string;
     private _debouncedTextUpdate: () => void;
 
     public constructor(context: vscode.ExtensionContext,
@@ -35,6 +36,18 @@ class WebPreview extends Disposable implements vscode.Disposable {
 
         this._context = context;
         this._editorInstance = editorInstance;
+
+        const url = vscode.workspace.getConfiguration().get<string>(CONSTANTS.configKeyRenderUrl);
+        if(!url){
+            showMessage(
+                this._editorInstance,
+                "No render URL configured",
+                MessageType.Error
+            );
+            throw new Error("No render URL configured");
+        }
+        this._url = url;
+        
         
         // Work out filepaths
         const fileExt = getExtension(schemaPath);
@@ -76,9 +89,8 @@ class WebPreview extends Disposable implements vscode.Disposable {
         this._panel = this.createPanel();
 
 
-        this._debouncedTextUpdate = debounce(() => this.updatePreview(), 500);
-
-        
+        const debounceTimeout = vscode.workspace.getConfiguration().get<number>(CONSTANTS.configKeyDebounceTimeout);
+        this._debouncedTextUpdate = debounce(() => this.updatePreview(), debounceTimeout ?? CONSTANTS.defaultDebounceTimeout);
 
         const onChangedTextEditor = vscode.workspace.onDidChangeTextDocument((e): void => {
             if (e.document.isUntitled) { return; }
@@ -112,6 +124,9 @@ class WebPreview extends Disposable implements vscode.Disposable {
         // TODO: Load this better
         let file = getExtensionFile(this._context, "dist", "frame.html");
         let html = fs.readFileSync(file, 'utf8');
+
+        // Replace the URL
+        html = html.replace("{URL}", this._url);
 
         // Read schema content
         let schemaContent = fs.readFileSync(this._schemaPath, 'utf8');
