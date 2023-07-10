@@ -1,4 +1,6 @@
 import path = require("path");
+import * as fs from 'fs';
+import { CONSTANTS } from "../constants";
 import { ExtensionContext, Uri } from "vscode";
 
 export function getExtensionFile(context: ExtensionContext, folder: string, file: string): string {
@@ -23,21 +25,27 @@ export function getExtension(path: string): string | undefined{
     return undefined;
 }
 
-export const YamlExts = ["yaml", "yml"];
-export const JsonExts = ["json"];
-export const UiSchemaExt = "uischema";
-export const SchemaExt = "schema";
+export function isSchemaFile(filePath: string): boolean{
+    return CONSTANTS.SchemaExtensions.some((ext:string) => filePath.endsWith(`.${ext}`) || filePath.endsWith(`${path.sep}${ext}`));
+}
 
-export function switchPath(schemaPath: string, currentSchema: string, fileExt: string): string{
-    const switchedExt = currentSchema === SchemaExt ? UiSchemaExt : SchemaExt;
+export function getCompanionFilePath(filePath: string): string | undefined{
+    const directory = path.dirname(filePath);
+    const fileExt = getExtension(filePath);
+    const isSchema = CONSTANTS.SchemaExtensions.some((ext:string) => filePath.endsWith(`.${ext}`) || filePath.endsWith(`${path.sep}${ext}`));
+    const schemaExt = isSchema ? `${CONSTANTS.SchemaFile}.${fileExt}` : `${CONSTANTS.UiSchemaFile}.${fileExt}`;
+    const pathPrefix = filePath.replace(schemaExt, "");
 
-    const pathPrefix = schemaPath.endsWith(`${path.sep}${currentSchema}.${fileExt}`)
-    ? schemaPath.substring(0, schemaPath.length - `${currentSchema}.${fileExt}`.length)
-    : schemaPath.endsWith(`.${currentSchema}.${fileExt}`)
-    ? schemaPath.substring(0, schemaPath.length - `${currentSchema}.${fileExt}`.length)
-    : schemaPath.substring(0, schemaPath.length - `${fileExt}`.length);
+    const mapFiles = (ext:string) => `${pathPrefix}${ext}`;
 
-    return pathPrefix + `${switchedExt}.${fileExt}`;
+    const validFiles = isSchema ? CONSTANTS.UiSchemaExtensions.map(mapFiles) : CONSTANTS.SchemaExtensions.map(mapFiles);
+
+    for (const file of validFiles) {
+        if (fs.existsSync(file)) {
+            return file;
+        }
+    }
+    return undefined;
 }
 
 export function isJson(content: string): boolean{

@@ -6,13 +6,14 @@ import { Buffer } from "buffer";
 import { debounce } from './utils/debounce';
 import { showMessage, MessageType } from './utils/messages';
 import { Disposable } from './utils/dispose';
-import { SchemaExt, UiSchemaExt, getExtensionFile, switchPath, JsonExts, YamlExts, getExtension, isJson } from "./utils/fileUtils";
+import { getExtensionFile, getExtension, isJson, isSchemaFile, getCompanionFilePath } from "./utils/fileUtils";
 
 
 export async function showPreview(
     context: vscode.ExtensionContext,
     editorInstance: any,
     schemaPath: any){
+
     const preview = new WebPreview(context, editorInstance, schemaPath);
 
     await preview.createPreview();
@@ -37,22 +38,20 @@ class WebPreview extends Disposable implements vscode.Disposable {
         
         // Work out filepaths
         const fileExt = getExtension(schemaPath);
-        if(fileExt && (YamlExts.includes(fileExt) || JsonExts.includes(fileExt))){
-            if(schemaPath.includes(`.${SchemaExt}.${fileExt}`) || schemaPath.includes(`${path.sep}${SchemaExt}.${fileExt}`)){
-                this._schemaPath = schemaPath;
-                this._uiSchemaPath = switchPath(schemaPath, SchemaExt, fileExt);
-            }
-            if(schemaPath.includes(`.${UiSchemaExt}.${fileExt}`) || schemaPath.includes(`${path.sep}${UiSchemaExt}.${fileExt}`)){
-                this._schemaPath = switchPath(schemaPath, UiSchemaExt, fileExt);
-                this._uiSchemaPath = schemaPath;
-            }
-            else{
-                showMessage(
-                    this._editorInstance,
-                    "Invalid file selected",
-                    MessageType.Error
-                );
-            }
+        if(schemaPath && isSchemaFile(schemaPath)){
+            this._schemaPath = schemaPath;
+            this._uiSchemaPath = getCompanionFilePath(schemaPath);   
+        }
+        else if(!isSchemaFile(schemaPath)){
+            this._uiSchemaPath = schemaPath;
+            this._schemaPath = getCompanionFilePath(schemaPath);
+        }
+        else{
+            showMessage(
+                this._editorInstance,
+                "Invalid file selected",
+                MessageType.Error
+            );
         }
 
         // Confirm files exist
@@ -72,6 +71,25 @@ class WebPreview extends Disposable implements vscode.Disposable {
             );
         }
 
+
+        // Create the webview panel
+        this._panel = this.createPanel();
+
+
+        this._debouncedTextUpdate = debounce(() => this.updatePreview(), 500);
+
+        
+
+        const onChangedTextEditor = vscode.workspace.onDidChangeTextDocument((e): void => {
+            if (e.document.isUntitled) { return; }
+            if (e.document.uri.scheme === 'output') { return; }
+            this._debouncedTextUpdate();
+       });
+
+       this._register(onChangedTextEditor);
+    }
+
+    private createPanel(): vscode.WebviewPanel{
         const showOptions = {
             viewColumn: vscode.ViewColumn.Two,
             preserveFocus: true
@@ -81,17 +99,9 @@ class WebPreview extends Disposable implements vscode.Disposable {
             enableScripts: true,          
         };
 
-        this._panel = vscode.window.createWebviewPanel('WebPreview', 'Web Preview',  showOptions, options);
-
-        this._debouncedTextUpdate = debounce(() => this.updatePreview(), 500);
-
-        this._register(this._panel);
-
-        const onChangedTextEditor = vscode.workspace.onDidChangeTextDocument((e): void => {
-            if (e.document.isUntitled) { return; }
-            if (e.document.uri.scheme === 'output') { return; }
-            this._debouncedTextUpdate();
-       });
+        const panel = vscode.window.createWebviewPanel('WebPreview', 'Web Preview',  showOptions, options);
+        this._register(panel);
+        return panel;
     }
 
     public async createPreview(){
