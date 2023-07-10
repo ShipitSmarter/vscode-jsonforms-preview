@@ -34,9 +34,11 @@ class WebPreview extends Disposable implements vscode.Disposable {
         schemaPath: any){ 
         super();
 
+        // Store params
         this._context = context;
         this._editorInstance = editorInstance;
 
+        // Fetch configured URL from configuration
         const url = vscode.workspace.getConfiguration().get<string>(CONSTANTS.configKeyRenderUrl);
         if(!url){
             showMessage(
@@ -49,8 +51,7 @@ class WebPreview extends Disposable implements vscode.Disposable {
         this._url = url;
         
         
-        // Work out filepaths
-        const fileExt = getExtension(schemaPath);
+        // Work out correct filepaths
         if(schemaPath && isSchemaFile(schemaPath)){
             this._schemaPath = schemaPath;
             this._uiSchemaPath = getCompanionFilePath(schemaPath);   
@@ -65,22 +66,24 @@ class WebPreview extends Disposable implements vscode.Disposable {
                 "Invalid file selected",
                 MessageType.Error
             );
+            throw new Error("Invalid file selected");
         }
 
         // Confirm files exist
-        if (!fs.existsSync(this._schemaPath)) {
+        if (!this._schemaPath) {
             showMessage(
                 this._editorInstance,
-                "Schema file not found",
+                "Missing schema file",
                 MessageType.Error
             );
+            throw new Error("Missing schema file");
         }
-
-        if (!fs.existsSync(this._uiSchemaPath)) {
+        if(!this._uiSchemaPath)
+        {
             showMessage(
                 this._editorInstance,
-                "UISchema file not found",
-                MessageType.Error
+                "Missing UISchema file, all properties will be rendered",
+                MessageType.Warning
             );
         }
 
@@ -89,15 +92,17 @@ class WebPreview extends Disposable implements vscode.Disposable {
         this._panel = this.createPanel();
 
 
+        // Configure editor debounce
+        // TODO: Can we take a LIVE view? without having to save?
         const debounceTimeout = vscode.workspace.getConfiguration().get<number>(CONSTANTS.configKeyDebounceTimeout);
         this._debouncedTextUpdate = debounce(() => this.updatePreview(), debounceTimeout ?? CONSTANTS.defaultDebounceTimeout);
-
         const onChangedTextEditor = vscode.workspace.onDidChangeTextDocument((e): void => {
             if (e.document.isUntitled) { return; }
             if (e.document.uri.scheme === 'output') { return; }
             this._debouncedTextUpdate();
        });
 
+       this._register(this._panel);
        this._register(onChangedTextEditor);
     }
 
@@ -112,7 +117,7 @@ class WebPreview extends Disposable implements vscode.Disposable {
         };
 
         const panel = vscode.window.createWebviewPanel('WebPreview', 'Web Preview',  showOptions, options);
-        this._register(panel);
+       
         return panel;
     }
 
@@ -125,7 +130,7 @@ class WebPreview extends Disposable implements vscode.Disposable {
         let file = getExtensionFile(this._context, "dist", "frame.html");
         let html = fs.readFileSync(file, 'utf8');
 
-        // Replace the URL
+        // Replace the renderer URL
         html = html.replace("{URL}", this._url);
 
         // Read schema content
@@ -150,6 +155,7 @@ class WebPreview extends Disposable implements vscode.Disposable {
         html = html.replace("{SCHEMA}", "SCHEMA:" + encSchem);
         html = html.replace("{UI_SCHEMA}", "UI_SCHEMA:" + encUiSchem);
 
+        // Set panel HTML
         this._panel.webview.html = html;
     }
 }
