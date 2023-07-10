@@ -26,16 +26,16 @@
 
         function receiveMessage(message) {
             console.log(event.data);
-            if(message == "ready"){
+            if(message == "READY"){
                 sendSchema();
             }
-            if(message == "GOTSCM"){
-                sendMessage("{UISCHEMA}");
+            if(message == "GOT_SCHEMA"){
+                sendMessage("{UI_SCHEMA}");
             }
             if(message.includes("DATA:")){
                 vscode.setState(message);
             }
-            if(message == "GOTUISCM" && previousState){
+            if(message == "GOT_UI_SCHEMA" && previousState){
                 sendMessage(previousState);
             }
         }
@@ -45,7 +45,7 @@
         }
 
         function sendUiSchema(){
-            sendMessage("{UISCHEMA}");
+            sendMessage("{UI_SCHEMA}");
         }
 
         

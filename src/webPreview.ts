@@ -122,8 +122,8 @@ class WebPreview extends Disposable implements vscode.Disposable {
         const encUiSchem = btoa(uiSchemaContent);
 
         // Replace the script tags with the content
-        html = html.replace("{SCHEMA}", "SCM:" + encSchem);
-        html = html.replace("{UISCHEMA}", "UISCM:" + encUiSchem);
+        html = html.replace("{SCHEMA}", "SCHEMA:" + encSchem);
+        html = html.replace("{UI_SCHEMA}", "UI_SCHEMA:" + encUiSchem);
 
         this._panel.webview.html = html;
     }
