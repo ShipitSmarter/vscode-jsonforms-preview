@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
+import { Buffer } from "buffer";
 import { Disposable } from './utils/dispose';
 import { getExtensionFile } from "./utils/fileUtils";
 
@@ -37,8 +38,11 @@ class WebPreview extends Disposable implements vscode.Disposable {
         let schema = fs.readFileSync(schemaFile, 'utf8');
         let uiSchema = fs.readFileSync(uiSchemaFile, 'utf8');
 
-        //html = html.replace("{SCHEMA}", "SCM:" + schema);
-        //html = html.replace("{UISCHEMA}", "UISCM:" + uiSchema);
+        const encSchem = btoa(schema);
+        const encUiSchem = btoa(uiSchema);
+
+        html = html.replace("{SCHEMA}", "SCM:" + encSchem);
+        html = html.replace("{UISCHEMA}", "UISCM:" + encUiSchem);
 
         this._panel.webview.html = html;
 

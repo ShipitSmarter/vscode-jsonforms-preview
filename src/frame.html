@@ -32,11 +32,19 @@
         function receiveMessage(message) {
             console.log(event.data);
             if(message == "ready"){
-                sendMessage("hello world");
-
-                //sendMessage("{SCHEMA}");
-                //sendMessage("{UISCHEMA}");
+                sendSchema();  
             }
+            if(message == "GOTSCM"){
+                sendMessage("{UISCHEMA}");
+            }
+        }
+
+        function sendSchema(){
+            sendMessage("{SCHEMA}");
+        }
+
+        function sendUiSchema(){
+            sendMessage("{UISCHEMA}");
         }
     </script>
 </body>
