@@ -28,14 +28,13 @@ export const JsonExts = ["json"];
 export const UiSchemaExt = "uischema";
 export const SchemaExt = "schema";
 
-export function switchPath(schemaPath: string, fileExt: string): string{
-    const schemaExt = schemaPath.includes(`.${SchemaExt}.${fileExt}`) ? SchemaExt : UiSchemaExt;
-    const switchedExt = schemaExt === SchemaExt ? UiSchemaExt : SchemaExt;
+export function switchPath(schemaPath: string, currentSchema: string, fileExt: string): string{
+    const switchedExt = currentSchema === SchemaExt ? UiSchemaExt : SchemaExt;
 
-    const pathPrefix = schemaPath.endsWith(`/${schemaExt}.${fileExt}`) // no prefix if the file is called schema.json
-    ? schemaPath.substring(0, schemaPath.length - `${schemaExt}.${fileExt}`.length)
-    : schemaPath.endsWith(`.${schemaExt}.${fileExt}`)
-    ? schemaPath.substring(0, schemaPath.length - `${schemaExt}.${fileExt}`.length)
+    const pathPrefix = schemaPath.endsWith(`${path.sep}${currentSchema}.${fileExt}`)
+    ? schemaPath.substring(0, schemaPath.length - `${currentSchema}.${fileExt}`.length)
+    : schemaPath.endsWith(`.${currentSchema}.${fileExt}`)
+    ? schemaPath.substring(0, schemaPath.length - `${currentSchema}.${fileExt}`.length)
     : schemaPath.substring(0, schemaPath.length - `${fileExt}`.length);
 
     return pathPrefix + `${switchedExt}.${fileExt}`;

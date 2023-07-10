@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as YAML from 'yaml';
+import path = require("path");
 import { Buffer } from "buffer";
 import { showMessage, MessageType } from './utils/messages';
 import { Disposable } from './utils/dispose';
@@ -36,12 +37,12 @@ class WebPreview extends Disposable implements vscode.Disposable {
         // Work out filepaths
         const fileExt = getExtension(schemaPath);
         if(fileExt && (YamlExts.includes(fileExt) || JsonExts.includes(fileExt))){
-            if(schemaPath.includes(`${SchemaExt}.${fileExt}`)){
+            if(schemaPath.includes(`.${SchemaExt}.${fileExt}`) || schemaPath.includes(`${path.sep}${SchemaExt}.${fileExt}`)){
                 this._schemaPath = schemaPath;
-                this._uiSchemaPath = switchPath(schemaPath, fileExt);
+                this._uiSchemaPath = switchPath(schemaPath, SchemaExt, fileExt);
             }
-            else if(schemaPath.includes(`${UiSchemaExt}.${fileExt}`)) {
-                this._schemaPath = switchPath(schemaPath, fileExt);
+            if(schemaPath.includes(`.${UiSchemaExt}.${fileExt}`) || schemaPath.includes(`${path.sep}${UiSchemaExt}.${fileExt}`)){
+                this._schemaPath = switchPath(schemaPath, UiSchemaExt, fileExt);
                 this._uiSchemaPath = schemaPath;
             }
             else{
