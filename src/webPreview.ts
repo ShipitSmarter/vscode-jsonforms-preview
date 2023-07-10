@@ -3,28 +3,29 @@ import * as fs from 'fs';
 import * as YAML from 'yaml';
 import path = require("path");
 import { Buffer } from "buffer";
+import { debounce } from './utils/debounce';
 import { showMessage, MessageType } from './utils/messages';
 import { Disposable } from './utils/dispose';
 import { SchemaExt, UiSchemaExt, getExtensionFile, switchPath, JsonExts, YamlExts, getExtension, isJson } from "./utils/fileUtils";
 
 
-export async function showPreview(context: vscode.ExtensionContext,
+export async function showPreview(
+    context: vscode.ExtensionContext,
     editorInstance: any,
     schemaPath: any){
     const preview = new WebPreview(context, editorInstance, schemaPath);
 
-    await preview.setup();
-
-    await preview.showPreview();
+    await preview.createPreview();
 }
 
 class WebPreview extends Disposable implements vscode.Disposable {
 
-    private _panel: vscode.WebviewPanel | undefined;
+    private _panel: vscode.WebviewPanel;
     private _context: vscode.ExtensionContext;
     private _editorInstance: any;
     private _schemaPath: any;
     private _uiSchemaPath: any;
+    private _debouncedTextUpdate: () => void;
 
     public constructor(context: vscode.ExtensionContext,
         editorInstance: any,
@@ -70,9 +71,7 @@ class WebPreview extends Disposable implements vscode.Disposable {
                 MessageType.Error
             );
         }
-    }
 
-    public async setup(){
         const showOptions = {
             viewColumn: vscode.ViewColumn.Two,
             preserveFocus: true
@@ -84,6 +83,22 @@ class WebPreview extends Disposable implements vscode.Disposable {
 
         this._panel = vscode.window.createWebviewPanel('WebPreview', 'Web Preview',  showOptions, options);
 
+        this._debouncedTextUpdate = debounce(() => this.updatePreview(), 500);
+
+        this._register(this._panel);
+
+        const onChangedTextEditor = vscode.workspace.onDidChangeTextDocument((e): void => {
+            if (e.document.isUntitled) { return; }
+            if (e.document.uri.scheme === 'output') { return; }
+            this._debouncedTextUpdate();
+       });
+    }
+
+    public async createPreview(){
+        await this.updatePreview();
+    }
+
+    private async updatePreview(){
         // TODO: Load this better
         let file = getExtensionFile(this._context, "dist", "frame.html");
         let html = fs.readFileSync(file, 'utf8');
@@ -111,11 +126,5 @@ class WebPreview extends Disposable implements vscode.Disposable {
         html = html.replace("{UISCHEMA}", "UISCM:" + encUiSchem);
 
         this._panel.webview.html = html;
-
-        this._register(this._panel);
-    }
-
-    public async showPreview(){
-        this._panel?.reveal();
     }
 }

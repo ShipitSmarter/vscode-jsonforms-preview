@@ -16,9 +16,9 @@
         <div></div>
 
     <script>
-        //setTimeout(() => {
-         //   sendMessage('hello world');
-        //}, 5000);
+        const vscode = acquireVsCodeApi();
+
+        const previousState = vscode.getState();  
 
         window.addEventListener('message', (event) => {
             receiveMessage(event.data);
@@ -36,6 +36,12 @@
             }
             if(message == "GOTSCM"){
                 sendMessage("{UISCHEMA}");
+            }
+            if(message.includes("DATA:")){
+                vscode.setState(message);
+            }
+            if(message == "GOTUISCM" && previousState){
+                sendMessage(previousState);
             }
         }
 
