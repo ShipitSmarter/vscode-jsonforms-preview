@@ -33,6 +33,7 @@ class WebPreview extends Disposable implements vscode.Disposable {
         this._context = context;
         this._editorInstance = editorInstance;
         
+        // Work out filepaths
         const fileExt = getExtension(schemaPath);
         if(fileExt && (YamlExts.includes(fileExt) || JsonExts.includes(fileExt))){
             if(schemaPath.includes(`${SchemaExt}.${fileExt}`)){
@@ -52,6 +53,7 @@ class WebPreview extends Disposable implements vscode.Disposable {
             }
         }
 
+        // Confirm files exist
         if (!fs.existsSync(this._schemaPath)) {
             showMessage(
                 this._editorInstance,
@@ -76,8 +78,7 @@ class WebPreview extends Disposable implements vscode.Disposable {
         };
 
         const options = {
-            enableScripts: true,
-            
+            enableScripts: true,          
         };
 
         this._panel = vscode.window.createWebviewPanel('WebPreview', 'Web Preview',  showOptions, options);
@@ -86,22 +87,25 @@ class WebPreview extends Disposable implements vscode.Disposable {
         let file = getExtensionFile(this._context, "dist", "frame.html");
         let html = fs.readFileSync(file, 'utf8');
 
+        // Read schema content
         let schemaContent = fs.readFileSync(this._schemaPath, 'utf8');
         let uiSchemaContent = fs.readFileSync(this._uiSchemaPath, 'utf8');
 
+        // Convert from YAML to JSON if needed
         if(!isJson(schemaContent)){
             let schemaYam = YAML.parse(schemaContent);
             schemaContent = JSON.stringify(schemaYam);
         }
-
         if(!isJson(uiSchemaContent)){
             let uiSchemaYam = YAML.parse(uiSchemaContent);
             uiSchemaContent = JSON.stringify(uiSchemaYam);
         }
 
+        // BASE64 encode the content since we need to ensure there are no escape characters in it
         const encSchem = btoa(schemaContent);
         const encUiSchem = btoa(uiSchemaContent);
 
+        // Replace the script tags with the content
         html = html.replace("{SCHEMA}", "SCM:" + encSchem);
         html = html.replace("{UISCHEMA}", "UISCM:" + encUiSchem);
 
