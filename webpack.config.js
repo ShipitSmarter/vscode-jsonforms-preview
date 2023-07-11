@@ -11,7 +11,9 @@ const path = require('path');
 const extensionConfig = {
   target: 'node', // VS Code extensions run in a Node.js-context 📖 -> https://webpack.js.org/configuration/node/
 	mode: 'none', // this leaves the source code as close as possible to the original (when packaging we set this to 'production')
-
+  watchOptions: {
+    ignored: ['**/examples', '**/node_modules'],
+  },
   entry: './src/extension.ts', // the entry point of this extension, 📖 -> https://webpack.js.org/configuration/entry-context/
   output: {
     // the bundle is stored in the 'dist' folder (check package.json), 📖 -> https://webpack.js.org/configuration/output/
@@ -34,7 +36,7 @@ const extensionConfig = {
     rules: [
       {
         test: /\.ts$/,
-        exclude: /node_modules/,
+        exclude: [/node_modules/, /examples/],
         use: [
           {
             loader: 'ts-loader'
@@ -43,7 +45,7 @@ const extensionConfig = {
       },
       {
         test: /\.html$/,
-        exclude: /node_modules/,
+        exclude: [/node_modules/, /examples/],
         use: {loader: 'html-loader'}
       }
     ]

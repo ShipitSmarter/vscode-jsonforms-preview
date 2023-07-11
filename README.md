@@ -18,12 +18,11 @@ You may use JSONForms in any way you see fit on your rendering page. The data wi
 3. If you wish to persist data that is entered into the form, send a message event to the parent window with the pattern `DATA:{DATA}`, where `{DATA}` is the stringified JSON of the persisted data, this should not be BASE64 encoded. You can send the data message using: `window.parent.postMessage('DATA:{DATA}', '*')`
 4. Your rendering page should now have both schema files, and any persisted data.
 
+An example Vue.js implementation of this pattern can be found in the `examples` folder of this repository.
 
 ## Extension Settings
 
-
 There is one configuration option. This can be defined in `json-forms-web-preview` in vscode settings (`.vscode/settings.json`).
-
 
 ```json
 {
@@ -36,6 +35,5 @@ There is one configuration option. This can be defined in `json-forms-web-previe
 |----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|-----------|--------------------------|
 | `render-url`  | Provide the URL of the pre-configured renderer endpoint   | string | ` `      | `https://localhost:80` |
 | `debouncce-timeout`  | The time between the last character entered on your editor and the render preview being updated   | integer | `500`      | `2500` |
-
 
 ---
