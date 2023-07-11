@@ -10,7 +10,7 @@ export function activate(context: vscode.ExtensionContext) {
 			if (args === undefined) {
 			  args = {fsPath: null};
 			}
-			showPreview(context, vscode, args.fsPath);
+			showPreview(args.fsPath);
 		}),
 	);
 }

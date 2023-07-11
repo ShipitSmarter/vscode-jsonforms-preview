@@ -10,55 +10,42 @@ import { isJson, isSchemaFile, getCompanionFilePath } from "./utils/fileUtils";
 
 import frameTemplate from './frame.html';
 
-
 export async function showPreview(
-    context: vscode.ExtensionContext,
-    editorInstance: any,
     filePath: any){
 
-    const preview = new WebPreview(context, editorInstance, filePath);
+    // Initialize the preview
+    const preview = new WebPreview(filePath);
 
+    // Render preview
     await preview.createPreview();
 }
 
 class WebPreview extends Disposable implements vscode.Disposable {
-
     private _panel: vscode.WebviewPanel;
-    private _context: vscode.ExtensionContext;
-    private _editorInstance: any;
 
     private _renderUrl: string;
 
-    private _schemaPath: any;
-    private _uiSchemaPath: any;
+    private _schemaPath: string;
+    private _uiSchemaPath: string;
     private _schemaContent: string;
     private _uiSchemaContent: string;
 
-
     private _debouncedTextUpdate: () => void;
 
-
-    public constructor(context: vscode.ExtensionContext,
-        editorInstance: any,
-        filePath: any){ 
+    public constructor(filePath: any){       
         super();
-
-        // Store params
-        this._context = context;
-        this._editorInstance = editorInstance;
 
         // Fetch configured URL from configuration
         const url = vscode.workspace.getConfiguration().get<string>(CONSTANTS.configKeyRenderUrl);
         if(!url){
             showMessage(
-                this._editorInstance,
+                vscode,
                 "No render URL configured",
                 MessageType.Error
             );
             throw new Error("No render URL configured");
         }
-        this._renderUrl = url;
-        
+        this._renderUrl = url;        
         
         // Work out correct filepaths
         if(filePath && isSchemaFile(filePath)){
@@ -71,55 +58,32 @@ class WebPreview extends Disposable implements vscode.Disposable {
         }
         else{
             showMessage(
-                this._editorInstance,
+                vscode,
                 "Invalid file selected",
                 MessageType.Error
             );
             throw new Error("Invalid file selected");
         }
 
-        // Confirm files exist
-        if (!this._schemaPath) {
-            showMessage(
-                this._editorInstance,
-                "Missing schema file",
-                MessageType.Error
-            );
-            throw new Error("Missing schema file");
-        }
-        if(!this._uiSchemaPath)
-        {
-            showMessage(
-                this._editorInstance,
-                "Missing UISchema file, all properties will be rendered",
-                MessageType.Warning
-            );
-        }
-
-
         // Get content
-        let schemaFileContent = fs.readFileSync(this._schemaPath, 'utf8');
-        let uiSchemaContent = fs.readFileSync(this._uiSchemaPath, 'utf8');
-
-        this._schemaContent = schemaFileContent;
-        this._uiSchemaContent = uiSchemaContent;
+        this._schemaContent = fs.readFileSync(this._schemaPath, 'utf8');
+        this._uiSchemaContent = fs.readFileSync(this._uiSchemaPath, 'utf8');
 
         // Create the webview panel
         this._panel = this.createPanel();
 
-
         // Configure editor debounce
         const debounceTimeout = vscode.workspace.getConfiguration().get<number>(CONSTANTS.configKeyDebounceTimeout);
         this._debouncedTextUpdate = debounce(() => this.updatePreview(), debounceTimeout ?? CONSTANTS.defaultDebounceTimeout);
+
+        // Hook change event to sync new files with the preview
         const onChangedTextEditor = vscode.workspace.onDidChangeTextDocument((e): void => {
             if (e.document.isUntitled) { return; }
             if (e.document.uri.scheme === 'output') { return; }
 
             if(e.document.uri.fsPath === this._schemaPath){
                 try{
-                    var schemaContent = this.formatContent(e.document.getText());
-                    JSON.parse(schemaContent);
-                    this._schemaContent = this.formatContent(e.document.getText());
+                    this._schemaContent = this.formatAndValidateContent(e.document.getText());
                 }
                 catch(e){
                     // Invalid JSON, so we don't update
@@ -128,9 +92,7 @@ class WebPreview extends Disposable implements vscode.Disposable {
             }
             else if(e.document.uri.fsPath === this._uiSchemaPath){
                 try{
-                    var uiSchemaContent = this.formatContent(e.document.getText());
-                    JSON.parse(uiSchemaContent);
-                    this._uiSchemaContent = this.formatContent(e.document.getText());
+                    this._uiSchemaContent = this.formatAndValidateContent(e.document.getText());
                 }
                 catch(e){
                     // Invalid JSON, so we don't update
@@ -144,6 +106,7 @@ class WebPreview extends Disposable implements vscode.Disposable {
             this._debouncedTextUpdate();
        });
 
+       // Register panel and events for disposal
        this._register(this._panel);
        this._register(onChangedTextEditor);
     }
@@ -186,11 +149,14 @@ class WebPreview extends Disposable implements vscode.Disposable {
         this._panel.webview.html = html;
     }
 
-    private formatContent(content: string): string{
+    // Format and validate the content
+    // Will throw if invalid
+    private formatAndValidateContent(content: string): string{
         if(!isJson(content)){
             let yam = YAML.parse(content);
             return JSON.stringify(yam);
         }
+        JSON.parse(content);
         return content;
     }
 }
