@@ -6,7 +6,7 @@ import { CONSTANTS } from "./constants";
 import { debounce } from './utils/debounce';
 import { showMessage, MessageType } from './utils/messages';
 import { Disposable } from './utils/dispose';
-import { getExtensionFile, getExtension, isJson, isSchemaFile, getCompanionFilePath } from "./utils/fileUtils";
+import { isJson, isSchemaFile, getCompanionFilePath } from "./utils/fileUtils";
 
 import frameTemplate from './frame.html';
 
@@ -126,7 +126,7 @@ class WebPreview extends Disposable implements vscode.Disposable {
                     return;
                 }
             }
-            if(e.document.uri.fsPath === this._uiSchemaPath){
+            else if(e.document.uri.fsPath === this._uiSchemaPath){
                 try{
                     var uiSchemaContent = this.formatContent(e.document.getText());
                     JSON.parse(uiSchemaContent);

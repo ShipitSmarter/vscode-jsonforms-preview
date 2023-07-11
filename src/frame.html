@@ -25,12 +25,11 @@
         }
 
         function receiveMessage(message) {
-            console.log(event.data);
             if(message == "READY"){
                 sendSchema();
             }
             if(message == "GOT_SCHEMA"){
-                sendMessage("{UI_SCHEMA}");
+                sendUiSchema();
             }
             if(message.includes("DATA:")){
                 vscode.setState(message);

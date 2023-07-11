@@ -8,4 +8,4 @@ export const CONSTANTS = {
     configKeyDebounceTimeout: "jsonFormsWebPreview.debounceTimeout",
 
     defaultDebounceTimeout: 500,
-}
+};
