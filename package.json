@@ -53,21 +53,21 @@
         }
       ]
     },
-    "configuration":{
+    "configuration": {
       "title": "jsonFormsWebPreview",
       "properties": {
-        "jsonFormsWebPreview.renderUrl":{
+        "jsonFormsWebPreview.renderUrl": {
           "type": "string",
           "description": "URL to render JSON Schema",
           "pattern": "(http:|https:)+[^\\s]+[\\w]",
           "default": null
         },
-				"jsonFormsWebPreview.debounceTimeout": {
-					"type": "number",
-					"default": 500,
-					"description": "Amount of ms to wait with no changes before reloading preview",
-					"minimum": 200
-				}
+        "jsonFormsWebPreview.debounceTimeout": {
+          "type": "number",
+          "default": 500,
+          "description": "Amount of ms to wait with no changes before reloading preview",
+          "minimum": 200
+        }
       }
     }
   },
@@ -93,6 +93,7 @@
     "copy-webpack-plugin": "^11.0.0",
     "eslint": "^8.39.0",
     "glob": "^8.1.0",
+    "html-loader": "^4.2.0",
     "mocha": "^10.2.0",
     "ts-loader": "^9.4.2",
     "typescript": "^5.0.4",

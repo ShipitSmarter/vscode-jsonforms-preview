@@ -3,7 +3,6 @@
 'use strict';
 
 const path = require('path');
-const CopyPlugin = require("copy-webpack-plugin");
 
 //@ts-check
 /** @typedef {import('webpack').Configuration} WebpackConfig **/
@@ -21,11 +20,7 @@ const extensionConfig = {
     libraryTarget: 'commonjs2'
   },
   plugins:[
-    new CopyPlugin({
-      patterns: [
-        { from: "src/frame.html", to: path.resolve(__dirname, 'dist')}
-      ]
-    })
+    
   ],
   externals: {
     vscode: 'commonjs vscode' // the vscode-module is created on-the-fly and must be excluded. Add other modules that cannot be webpack'ed, 📖 -> https://webpack.js.org/configuration/externals/
@@ -45,6 +40,11 @@ const extensionConfig = {
             loader: 'ts-loader'
           }
         ]
+      },
+      {
+        test: /\.html$/,
+        exclude: /node_modules/,
+        use: {loader: 'html-loader'}
       }
     ]
   },

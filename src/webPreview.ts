@@ -8,6 +8,8 @@ import { showMessage, MessageType } from './utils/messages';
 import { Disposable } from './utils/dispose';
 import { getExtensionFile, getExtension, isJson, isSchemaFile, getCompanionFilePath } from "./utils/fileUtils";
 
+import frameTemplate from './frame.html';
+
 
 export async function showPreview(
     context: vscode.ExtensionContext,
@@ -158,7 +160,7 @@ class WebPreview extends Disposable implements vscode.Disposable {
 
         const panel = vscode.window.createWebviewPanel('WebPreview', 'Web Preview',  showOptions, options);
        
-        return panel;
+        return panel; 
     }
 
     public async createPreview(){
@@ -166,9 +168,7 @@ class WebPreview extends Disposable implements vscode.Disposable {
     }
 
     private async updatePreview(){
-        // TODO: Load this better
-        let file = getExtensionFile(this._context, "dist", "frame.html");
-        let html = fs.readFileSync(file, 'utf8');
+        let html = frameTemplate;
 
         // Replace the renderer URL
         html = html.replace("{URL}", this._renderUrl);
