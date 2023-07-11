@@ -80,19 +80,29 @@
       ]
     },
     "configuration": {
+      "type": "object",
       "title": "JSONForms remote-preview",
       "properties": {
-        "jsonFormsWebPreview.renderUrl": {
-          "type": "string",
-          "description": "URL to render JSON Schema",
-          "pattern": "(http:|https:)+[^\\s]+[\\w]",
-          "default": null
-        },
-        "jsonFormsWebPreview.debounceTimeout": {
-          "type": "number",
-          "default": 500,
-          "description": "Amount of ms to wait with no changes before reloading preview",
-          "minimum": 200
+        "json-forms-web-preview":{
+          "type": "object",
+          "default": {
+            "render-url": null,
+            "debounce-timeout": 500
+          },
+          "properties": {
+            "render-url": {
+              "type": "string",
+              "description": "URL to render JSON Schema",
+              "pattern": "(http:|https:)+[^\\s]+[\\w]",
+              "default": null
+            },
+            "debounce-timeout": {
+              "type": "number",
+              "default": 500,
+              "description": "Amount of ms to wait with no changes before reloading preview",
+              "minimum": 200
+            }
+          }
         }
       }
     }

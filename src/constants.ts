@@ -4,8 +4,8 @@ export const CONSTANTS = {
     schemaExtensions: ["schema.yaml", "schema.yml", "schema.json"],
     uiSchemaExtensions: ["uischema.yaml", "uischema.yml", "uischema.json"],
 
-    configKeyRenderUrl: "jsonFormsWebPreview.renderUrl",
-    configKeyDebounceTimeout: "jsonFormsWebPreview.debounceTimeout",
+    configKeyRenderUrl: "json-forms-web-preview.render-url",
+    configKeyDebounceTimeout: "json-forms-web-preview.debounce-timeout",
 
     defaultDebounceTimeout: 500,
 };
