@@ -1,13 +1,39 @@
 {
   "name": "json-forms-web-preview",
   "displayName": "JSONForms Remote Preview",
-  "description": "",
-  "version": "0.0.1",
+  "description": "VSCode extension to render JSONForms schemas using a remote renderer",
+  "publisher": "ShipitSmarter",
+  "author": {
+    "name": "ShipitSmarter",
+    "url": "https://github.com/ShipitSmarter"
+  },
+  "version": "1.0.0",
   "engines": {
     "vscode": "^1.79.0"
   },
+  "contributors": [
+    {
+      "name": "Michael Stocks",
+      "url": "https://github.com/Droxx",
+      "email": "michaelstocks1@gmail.com"
+    }
+  ],
   "categories": [
-    "Other"
+    "Visualization"
+  ],
+  "keywords": [
+    "form",
+    "forms",
+    "json",
+    "jsonforms",
+    "frontend",
+    "preview",
+    "render",
+    "jsonschema",
+    "schema",
+    "uischema",
+    "layout",
+    "template"
   ],
   "activationEvents": [
     "workspaceContains:**/**json",
