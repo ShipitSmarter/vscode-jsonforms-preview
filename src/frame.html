@@ -27,16 +27,14 @@
         function receiveMessage(message) {
             if(message == "READY"){
                 sendSchema();
-            }
-            if(message == "GOT_SCHEMA"){
                 sendUiSchema();
+                if(previousState){
+                    sendMessage(previousState);
+                }
             }
             if(message.includes("DATA:")){
                 vscode.setState(message);
-            }
-            if(message == "GOT_UI_SCHEMA" && previousState){
-                sendMessage(previousState);
-            }
+            }            
         }
 
         function sendSchema(){
@@ -46,9 +44,6 @@
         function sendUiSchema(){
             sendMessage("{UI_SCHEMA}");
         }
-
-        
-
     </script>
 </body>
 
