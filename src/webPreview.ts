@@ -121,7 +121,7 @@ class WebPreview extends Disposable implements vscode.Disposable {
             enableScripts: true,          
         };
 
-        const panel = vscode.window.createWebviewPanel('WebPreview', 'Web Preview',  showOptions, options);
+        const panel = vscode.window.createWebviewPanel('WebPreview', 'JSONForms Web-Preview',  showOptions, options);
        
         return panel; 
     }

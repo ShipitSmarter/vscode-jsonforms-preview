@@ -46,7 +46,7 @@
     "commands": [
       {
         "command": "json-forms-web-preview.rightClickSchema",
-        "title": "Open Web-Preview",
+        "title": "Open JSONForms Web-Preview",
         "enablement": "resourceExtname == .json || resourceExtname == .yaml"
       }
     ],
