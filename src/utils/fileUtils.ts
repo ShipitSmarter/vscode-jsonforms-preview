@@ -19,7 +19,7 @@ export function getCompanionFilePath(filePath: string): string{
     if(!fs.existsSync(filePath)){
         throw new Error(`File ${filePath} does not exist`);
     }
-    
+
     const fileExt = getExtension(filePath);
     const isSchema = CONSTANTS.schemaExtensions.some((ext:string) => filePath.endsWith(`.${ext}`) || filePath.endsWith(`${path.sep}${ext}`));
     const schemaExt = isSchema ? `${CONSTANTS.schemaFile}.${fileExt}` : `${CONSTANTS.uiSchemaFile}.${fileExt}`;
