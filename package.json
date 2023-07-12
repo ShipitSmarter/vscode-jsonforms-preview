@@ -19,6 +19,10 @@
       "email": "michaelstocks1@gmail.com"
     }
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ShipitSmarter/vscode-jsonforms-preview"
+  },
   "categories": [
     "Visualization"
   ],
@@ -84,7 +88,7 @@
       "type": "object",
       "title": "JSONForms remote-preview",
       "properties": {
-        "json-forms-web-preview":{
+        "json-forms-web-preview": {
           "type": "object",
           "default": {
             "render-url": "https://shipitsmarter.github.io/viya-app",
@@ -117,7 +121,8 @@
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "npm run compile-tests && npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
+    "test": "node ./out/test/runTest.js",
+    "deploy": "vsce publish"
   },
   "devDependencies": {
     "@types/glob": "^8.1.0",
@@ -128,6 +133,7 @@
     "@typescript-eslint/eslint-plugin": "^5.59.1",
     "@typescript-eslint/parser": "^5.59.1",
     "@vscode/test-electron": "^2.3.0",
+    "@vscode/vsce": "^2.19.0",
     "copy-webpack-plugin": "^11.0.0",
     "eslint": "^8.39.0",
     "glob": "^8.1.0",
