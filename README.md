@@ -26,14 +26,14 @@ There is one configuration option. This can be defined in `json-forms-web-previe
 
 ```json
 {
-    "render-url": "https://localhost:80",
+    "render-url": "https://shipitsmarter.github.io/viya-app",
     "debounce-timeout": 500
 }
 ```
 
 | id             | description                                                                                                                                                                   | type     | default   | example                  |
 |----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|-----------|--------------------------|
-| `render-url`  | Provide the URL of the pre-configured renderer endpoint   | string | ` `      | `https://localhost:80` |
+| `render-url`  | Provide the URL of the pre-configured renderer endpoint   | string | `https://shipitsmarter.github.io/viya-app`      | `https://localhost:80` |
 | `debouncce-timeout`  | The time between the last character entered on your editor and the render preview being updated   | integer | `500`      | `2500` |
 
 ---

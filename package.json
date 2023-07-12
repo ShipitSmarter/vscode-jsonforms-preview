@@ -3,6 +3,7 @@
   "displayName": "JSONForms Remote Preview",
   "description": "VSCode extension to render JSONForms schemas using a remote renderer",
   "publisher": "ShipitSmarter",
+  "icon": "img/icon.png",
   "author": {
     "name": "ShipitSmarter",
     "url": "https://github.com/ShipitSmarter"
@@ -86,7 +87,7 @@
         "json-forms-web-preview":{
           "type": "object",
           "default": {
-            "render-url": null,
+            "render-url": "https://shipitsmarter.github.io/viya-app",
             "debounce-timeout": 500
           },
           "properties": {
