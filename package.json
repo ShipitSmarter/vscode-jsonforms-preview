@@ -8,7 +8,7 @@
     "name": "ShipitSmarter",
     "url": "https://github.com/ShipitSmarter"
   },
-  "version": "1.0.0",
+  "version": "1.0.1",
   "engines": {
     "vscode": "^1.79.0"
   },
