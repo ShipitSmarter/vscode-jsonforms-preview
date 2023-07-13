@@ -26,8 +26,8 @@ There is one configuration option. This can be defined in `json-forms-web-previe
 
 ```json
 {
-    "render-url": "https://shipitsmarter.github.io/viya-app",
-    "debounce-timeout": 500
+    "json-forms-web-preview.render-url": "https://shipitsmarter.github.io/viya-app",
+    "json-forms-web-preview.debounce-timeout": 500
 }
 ```
 
