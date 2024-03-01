@@ -157,7 +157,7 @@ class WebPreview extends Disposable implements vscode.Disposable {
             "headers": {
             "x-api-pat": "${token}"
             },
-        `
+        `;
         return stringData.replace(/("asyncFetch":\s*\{)/g, `$1 ${configSettings}`);
     }
     // Format and validate the content
