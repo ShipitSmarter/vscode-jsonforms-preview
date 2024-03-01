@@ -98,6 +98,16 @@
           "default": 500,
           "description": "Amount of ms to wait with no changes before reloading preview",
           "minimum": 200
+        },
+        "json-forms-web-preview.tenant-url": {
+          "type": "string",
+          "default":  "",
+          "description": "URL to fetch dummy data from"
+        },
+        "json-forms-web-preview.token": {
+          "type": "string",
+          "default":  "",
+          "description": "your token"
         }
       }
     }

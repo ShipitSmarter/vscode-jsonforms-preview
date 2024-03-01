@@ -136,10 +136,10 @@ class WebPreview extends Disposable implements vscode.Disposable {
         // Replace the renderer URL
         html = html.replace("{URL}", this._renderUrl);
 
-
+        
         // BASE64 encode the content since we need to ensure there are no escape characters in it
         const encSchem = btoa(this._schemaContent);
-        const encUiSchem = btoa(this._uiSchemaContent);
+        const encUiSchem = btoa(this.injectAsyncFetchData(this._uiSchemaContent));
 
         // Replace the script tags with the content
         html = html.replace("{SCHEMA}", "SCHEMA:" + encSchem);
@@ -149,6 +149,17 @@ class WebPreview extends Disposable implements vscode.Disposable {
         this._panel.webview.html = html;
     }
 
+    private injectAsyncFetchData(stringData: string): string {
+        const url = vscode.workspace.getConfiguration().get<string>(CONSTANTS.configKeyTenantUrl);
+        const token = vscode.workspace.getConfiguration().get<string>(CONSTANTS.configKeyToken);
+        const configSettings = `
+            "baseUrl": "${url}",
+            "headers": {
+            "x-api-pat": "${token}"
+            },
+        `
+        return stringData.replace(/("asyncFetch":\s*\{)/g, `$1 ${configSettings}`);
+    }
     // Format and validate the content
     // Will throw if invalid
     private formatAndValidateContent(content: string): string{
