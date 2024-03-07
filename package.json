@@ -8,7 +8,7 @@
     "name": "ShipitSmarter",
     "url": "https://github.com/ShipitSmarter"
   },
-  "version": "1.0.1",
+  "version": "1.0.2",
   "engines": {
     "vscode": "^1.79.0"
   },
@@ -89,15 +89,30 @@
       "properties": {
         "json-forms-web-preview.render-url": {
           "type": "string",
-          "default":  "https://shipitsmarter.github.io/viya-app",
+          "default": "https://shipitsmarter.github.io/viya-app",
           "pattern": "(http:|https:)+[^\\s]+[\\w]",
           "description": "URL to render JSON Schema"
-          },
+        },
         "json-forms-web-preview.debounce-timeout": {
           "type": "number",
           "default": 500,
           "description": "Amount of ms to wait with no changes before reloading preview",
           "minimum": 200
+        },
+        "json-forms-web-preview.tenant-url": {
+          "type": "string",
+          "default": "",
+          "description": "URL to fetch dummy data from"
+        },
+        "json-forms-web-preview.token": {
+          "type": "string",
+          "default": "",
+          "description": "your token"
+        },
+        "json-forms-web-preview.token-header-name": {
+          "type": "string",
+          "default": "",
+          "description": "your token header name"
         }
       }
     }
@@ -122,7 +137,7 @@
     "@types/vscode": "^1.79.0",
     "@typescript-eslint/eslint-plugin": "^5.59.1",
     "@typescript-eslint/parser": "^5.59.1",
-    "@vscode/test-electron": "^2.3.0",
+    "@vscode/test-electron": "^2.3.8",
     "@vscode/vsce": "^2.19.0",
     "copy-webpack-plugin": "^11.0.0",
     "eslint": "^8.39.0",
@@ -136,6 +151,7 @@
     "webpack-cli": "^5.0.2"
   },
   "dependencies": {
+    "axios": "^1.6.7",
     "yaml": "2.2.2"
   }
 }

@@ -6,6 +6,9 @@ export const CONSTANTS = {
 
     configKeyRenderUrl: "json-forms-web-preview.render-url",
     configKeyDebounceTimeout: "json-forms-web-preview.debounce-timeout",
+    configKeyTenantUrl: "json-forms-web-preview.tenant-url",
+    configKeyToken: "json-forms-web-preview.token",
+    configKeyTokenHeaderName: "json-forms-web-preview.token-header-name",
 
     defaultDebounceTimeout: 500,
 };

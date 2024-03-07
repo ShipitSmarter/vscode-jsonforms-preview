@@ -7,8 +7,16 @@ import { debounce } from './utils/debounce';
 import { showMessage, MessageType } from './utils/messages';
 import { Disposable } from './utils/dispose';
 import { isJson, isSchemaFile, getCompanionFilePath } from "./utils/fileUtils";
+import axios from 'axios';
 
 import frameTemplate from './frame.html';
+
+type ResponseObject = {
+    status:number;
+    statusText:string;
+    value:string;
+    message:string;
+};
 
 export async function showPreview(
     filePath: any){
@@ -136,10 +144,10 @@ class WebPreview extends Disposable implements vscode.Disposable {
         // Replace the renderer URL
         html = html.replace("{URL}", this._renderUrl);
 
-
+        
         // BASE64 encode the content since we need to ensure there are no escape characters in it
         const encSchem = btoa(this._schemaContent);
-        const encUiSchem = btoa(this._uiSchemaContent);
+        const encUiSchem = btoa(await this.injectAsyncFetchData(this._uiSchemaContent));
 
         // Replace the script tags with the content
         html = html.replace("{SCHEMA}", "SCHEMA:" + encSchem);
@@ -148,6 +156,50 @@ class WebPreview extends Disposable implements vscode.Disposable {
         // Set panel HTML
         this._panel.webview.html = html;
     }
+
+    private async injectAsyncFetchData(stringData: string): Promise<string> {
+        let uiSchemaObject = JSON.parse(stringData);
+        await this.findAsyncFetches(uiSchemaObject);
+
+        let result = JSON.stringify(uiSchemaObject);
+        return result;
+    }
+
+    private async findAsyncFetches(obj: any): Promise<void> {
+        // thanks to https://medium.com/@alaneicker/how-to-process-json-data-with-recursion-dc530dd3db09
+        for (let key in obj) {
+            if (typeof obj[key] === 'object') {
+                if (key === 'asyncFetch') {
+                    await this.injectInAsyncFetchObject(obj[key]);
+                    continue;
+                }
+                if (Array.isArray(obj[key])) {
+                    // loop through array
+                    for (let i = 0; i < obj[key].length; i++) {
+                        if (typeof obj[key][i] === 'object') {
+                            // call function recursively only for objects
+                            await this.findAsyncFetches(obj[key][i]);
+                        }
+                    }
+                } else {
+                    // call function recursively for object
+                    await this.findAsyncFetches(obj[key]);
+                }
+            }
+        }
+    }
+
+    private async injectInAsyncFetchObject(asyncFetch: any): Promise<void> {
+        const endpoint = asyncFetch.api.endpoint;
+        const url = vscode.workspace.getConfiguration().get<string>(CONSTANTS.configKeyTenantUrl) ?? "";
+        const token = vscode.workspace.getConfiguration().get<string>(CONSTANTS.configKeyToken) ?? "";
+        const tokenHeaderName = vscode.workspace.getConfiguration().get<string>(CONSTANTS.configKeyTokenHeaderName) ?? "";
+
+        var response = await this._getApiCall(url + endpoint, token, tokenHeaderName);
+        let responseObject = JSON.parse(response.value);
+        asyncFetch.result = responseObject;
+    }
+  
 
     // Format and validate the content
     // Will throw if invalid
@@ -158,5 +210,61 @@ class WebPreview extends Disposable implements vscode.Disposable {
         }
         JSON.parse(content);
         return content;
+    }
+
+
+    private async _getApiCall(url:string, token:string, tokenHeaderName: string): Promise<ResponseObject> {
+        let result: ResponseObject;
+        try {
+            let headers: any = {};
+            headers[tokenHeaderName] = token;
+
+          const response = await axios({
+                method: "GET",
+                url: url,
+                responseType: 'arraybuffer',
+                responseEncoding: "binary",
+                headers: {
+                    ...headers
+                }
+            });
+    
+          let value: string = Buffer.from(response.data).toString();
+    
+          result = {
+            status: response.status,
+            statusText: response.statusText,
+            value: value,
+            message: ''
+          };
+    
+        } catch (err:any) {
+    
+          result = {
+            status: err.response.status,
+            statusText: err.response.statusText,
+            value: '',
+            message: this._getMessageFromError(err)
+          };
+
+          vscode.window.showErrorMessage(`JSONForms Web-Preview: GET to ${url} failed: ${result.message}`);
+        }
+    
+        return result;
+    };
+
+    private _getMessageFromError(err:any) : string {
+        let message: string;
+        if (err?.response?.data.hasOwnProperty('errors')) {
+            message = err.response.data.errors[0]?.message;
+        } else if (err?.response?.data?.hasOwnProperty('Message')) {
+            message = err.response.data.Message;
+        } else if (err.hasOwnProperty('message')) {
+            message = err.message;
+        } else {
+            message = '';
+        }
+
+        return message;
     }
 }
