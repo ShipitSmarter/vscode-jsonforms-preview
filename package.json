@@ -89,10 +89,10 @@
       "properties": {
         "json-forms-web-preview.render-url": {
           "type": "string",
-          "default":  "https://shipitsmarter.github.io/viya-app",
+          "default": "https://shipitsmarter.github.io/viya-app",
           "pattern": "(http:|https:)+[^\\s]+[\\w]",
           "description": "URL to render JSON Schema"
-          },
+        },
         "json-forms-web-preview.debounce-timeout": {
           "type": "number",
           "default": 500,
@@ -101,13 +101,18 @@
         },
         "json-forms-web-preview.tenant-url": {
           "type": "string",
-          "default":  "",
+          "default": "",
           "description": "URL to fetch dummy data from"
         },
         "json-forms-web-preview.token": {
           "type": "string",
-          "default":  "",
+          "default": "",
           "description": "your token"
+        },
+        "json-forms-web-preview.token-header-name": {
+          "type": "string",
+          "default": "",
+          "description": "your token header name"
         }
       }
     }
@@ -146,6 +151,7 @@
     "webpack-cli": "^5.0.2"
   },
   "dependencies": {
+    "axios": "^1.6.7",
     "yaml": "2.2.2"
   }
 }
