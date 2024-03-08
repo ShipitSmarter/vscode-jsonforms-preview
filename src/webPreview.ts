@@ -8,7 +8,7 @@ import { showMessage, MessageType } from './utils/messages';
 import { Disposable } from './utils/dispose';
 import { isJson, isSchemaFile, getCompanionFilePath } from "./utils/fileUtils";
 import { getConfiguration, traverseObject } from "./utils/general";
-import { getApiCall } from './utils/calls';
+import { getApiCall, getMessageFromError } from './utils/calls';
 
 import frameTemplate from './frame.html';
 
@@ -178,8 +178,17 @@ class WebPreview extends Disposable implements vscode.Disposable {
                 MessageType.Error
             );
         } else {
-            let responseObject = JSON.parse(response.value);
-            asyncFetchObject.result = responseObject;
+            let responseObject: any = {};
+            try {
+                responseObject = JSON.parse(response.value);
+                asyncFetchObject.result = responseObject;
+            } catch (err: any) {
+                showMessage(
+                    vscode,
+                    `GET to ${url} returned invalid JSON: ${getMessageFromError(err)}`,
+                    MessageType.Error
+                );
+            }
         }
     }
   

@@ -41,14 +41,14 @@ export async function getApiCall(url: string, token: string, tokenHeaderName: st
             status: err.response.status,
             statusText: err.response.statusText,
             value: '',
-            message: _getMessageFromError(err)
+            message: getMessageFromError(err)
         };
     }
 
     return result;
 };
 
-function _getMessageFromError(err: any): string {
+export function getMessageFromError(err: any): string {
     if (err?.response?.data.hasOwnProperty('errors') && 
         Array.isArray(err.response.data.errors) && 
         err.response.data.errors.length > 0) {
