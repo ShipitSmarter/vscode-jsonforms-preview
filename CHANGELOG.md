@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.0.3
+- Improved error handling
+- Improved documentation
+
 ## 1.0.2
 
 - Add inject data from settings to the ui-schema to dynamically test async fetch behaviour on internal components
