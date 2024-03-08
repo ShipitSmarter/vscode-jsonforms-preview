@@ -8,7 +8,7 @@
     "name": "ShipitSmarter",
     "url": "https://github.com/ShipitSmarter"
   },
-  "version": "1.0.2",
+  "version": "1.0.3",
   "engines": {
     "vscode": "^1.79.0"
   },
@@ -99,20 +99,20 @@
           "description": "Amount of ms to wait with no changes before reloading preview",
           "minimum": 200
         },
-        "json-forms-web-preview.tenant-url": {
+        "json-forms-web-preview.async-fetch.tenant-url": {
           "type": "string",
           "default": "",
-          "description": "URL to fetch dummy data from"
+          "description": "Optional URL to fetch dummy data from for custom ui schema elements containing `asyncFetch`"
         },
-        "json-forms-web-preview.token": {
+        "json-forms-web-preview.async-fetch.token": {
           "type": "string",
           "default": "",
-          "description": "your token"
+          "description": "Optional token to be sent in the header for the api call for custom ui schema elements containing `asyncFetch`"
         },
-        "json-forms-web-preview.token-header-name": {
+        "json-forms-web-preview.async-fetch.token-header-name": {
           "type": "string",
           "default": "",
-          "description": "your token header name"
+          "description": "Optional header name for the token to be sent in the api call for custom ui schema elements containing `asyncFetch`"
         }
       }
     }
