@@ -7,7 +7,7 @@ import { debounce } from './utils/debounce';
 import { showMessage, MessageType } from './utils/messages';
 import { Disposable } from './utils/dispose';
 import { isJson, isSchemaFile, getCompanionFilePath } from "./utils/fileUtils";
-import { getConfiguration, traverseObject } from "./utils/general";
+import { getConfiguration, traverseObject, base64Encode } from "./utils/general";
 import { getApiCall, getMessageFromError } from './utils/calls';
 
 import frameTemplate from './frame.html';
@@ -140,8 +140,9 @@ class WebPreview extends Disposable implements vscode.Disposable {
 
         
         // BASE64 encode the content since we need to ensure there are no escape characters in it
-        const encSchem = btoa(this._schemaContent);
-        const encUiSchem = btoa(await this.injectAsyncFetchData(this._uiSchemaContent));
+        const encSchem = base64Encode(this._schemaContent);
+        const uiSchemaContent = await this.injectAsyncFetchData(this._uiSchemaContent);
+        const encUiSchem = base64Encode(uiSchemaContent);
 
         // Replace the script tags with the content
         html = html.replace("{SCHEMA}", "SCHEMA:" + encSchem);
