@@ -174,7 +174,7 @@ class WebPreview extends Disposable implements vscode.Disposable {
         if (response.status < 200 || response.status >= 300) {
             showMessage(
                 vscode,
-                `GET to ${url} failed: ${response.message}`,
+                `GET to ${url + endpoint} failed: ${response.message}`,
                 MessageType.Error
             );
         } else {
@@ -185,7 +185,7 @@ class WebPreview extends Disposable implements vscode.Disposable {
             } catch (err: any) {
                 showMessage(
                     vscode,
-                    `GET to ${url} returned invalid JSON: ${getMessageFromError(err)}`,
+                    `GET to ${url + endpoint} returned invalid JSON: ${getMessageFromError(err)}`,
                     MessageType.Error
                 );
             }
