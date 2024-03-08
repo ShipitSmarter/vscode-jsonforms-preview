@@ -152,6 +152,12 @@ class WebPreview extends Disposable implements vscode.Disposable {
     }
 
     private async injectAsyncFetchData(stringData: string): Promise<string> {
+        // don't do anything if we don't have a valid tenant URL
+        let tenantUrl = getConfiguration<string>(CONSTANTS.configKeyTenantUrl);
+        if (!tenantUrl || tenantUrl.length === 0) {
+            return stringData;
+        }
+
         let uiSchemaObject = JSON.parse(stringData);
         await traverseObject(uiSchemaObject, "asyncFetch", "object", this.injectInAsyncFetchObject);
         let result = JSON.stringify(uiSchemaObject);
