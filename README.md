@@ -27,7 +27,10 @@ There is one configuration option. This can be defined in `json-forms-web-previe
 ```json
 {
     "json-forms-web-preview.render-url": "https://shipitsmarter.github.io/viya-app",
-    "json-forms-web-preview.debounce-timeout": 500
+    "json-forms-web-preview.debounce-timeout": 500,
+    "json-forms-web-preview.async-fetch.tenant-url": "https://your-tenant.com/api",
+    "json-forms-web-preview.async-fetch.token": "ALDSKAandkl3214sdlSA",
+    "json-forms-web-preview.async-fetch.token-header-name": "x-token-header-name",
 }
 ```
 
@@ -35,5 +38,7 @@ There is one configuration option. This can be defined in `json-forms-web-previe
 |----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|-----------|--------------------------|
 | `render-url`  | Provide the URL of the pre-configured renderer endpoint   | string | `https://shipitsmarter.github.io/viya-app`      | `https://localhost:80` |
 | `debouncce-timeout`  | The time between the last character entered on your editor and the render preview being updated   | integer | `500`      | `2500` |
-
+| `async-fetch.tenant-url`  | Optional URL to fetch dummy data from for custom ui schema elements containing `asyncFetch`   | string | ''     | `https://your-tenant.com/api` |
+| `async-fetch.token`  | Optional token to be sent in the header for the api call for custom ui schema elements containing `asyncFetch`  | string | ''      | `ALDSKAandkl3214sdlSA` |
+| `async-fetch.token-header-name`  |Optional header name for the token to be sent in the api call for custom ui schema elements containing `asyncFetch`   | string | ''      | `x-token-header-name` |
 ---

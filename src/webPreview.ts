@@ -177,7 +177,6 @@ class WebPreview extends Disposable implements vscode.Disposable {
         }
     }
   
-
     // Format and validate the content
     // Will throw if invalid
     private formatAndValidateContent(content: string): string{
