@@ -7,16 +7,10 @@ import { debounce } from './utils/debounce';
 import { showMessage, MessageType } from './utils/messages';
 import { Disposable } from './utils/dispose';
 import { isJson, isSchemaFile, getCompanionFilePath } from "./utils/fileUtils";
-import axios from 'axios';
+import { getConfiguration, traverseObject } from "./utils/general";
+import { getApiCall } from './utils/calls';
 
 import frameTemplate from './frame.html';
-
-type ResponseObject = {
-    status:number;
-    statusText:string;
-    value:string;
-    message:string;
-};
 
 export async function showPreview(
     filePath: any){
@@ -44,7 +38,7 @@ class WebPreview extends Disposable implements vscode.Disposable {
         super();
 
         // Fetch configured URL from configuration
-        const url = vscode.workspace.getConfiguration().get<string>(CONSTANTS.configKeyRenderUrl);
+        const url = getConfiguration<string>(CONSTANTS.configKeyRenderUrl);
         if(!url){
             showMessage(
                 vscode,
@@ -81,7 +75,7 @@ class WebPreview extends Disposable implements vscode.Disposable {
         this._panel = this.createPanel();
 
         // Configure editor debounce
-        const debounceTimeout = vscode.workspace.getConfiguration().get<number>(CONSTANTS.configKeyDebounceTimeout);
+        const debounceTimeout = getConfiguration<number>(CONSTANTS.configKeyDebounceTimeout);
         this._debouncedTextUpdate = debounce(() => this.updatePreview(), debounceTimeout ?? CONSTANTS.defaultDebounceTimeout);
 
         // Hook change event to sync new files with the preview
@@ -159,45 +153,28 @@ class WebPreview extends Disposable implements vscode.Disposable {
 
     private async injectAsyncFetchData(stringData: string): Promise<string> {
         let uiSchemaObject = JSON.parse(stringData);
-        await this.findAsyncFetches(uiSchemaObject);
-
+        await traverseObject(uiSchemaObject, "asyncFetch", "object", this.injectInAsyncFetchObject);
         let result = JSON.stringify(uiSchemaObject);
         return result;
     }
 
-    private async findAsyncFetches(obj: any): Promise<void> {
-        // thanks to https://medium.com/@alaneicker/how-to-process-json-data-with-recursion-dc530dd3db09
-        for (let key in obj) {
-            if (typeof obj[key] === 'object') {
-                if (key === 'asyncFetch') {
-                    await this.injectInAsyncFetchObject(obj[key]);
-                    continue;
-                }
-                if (Array.isArray(obj[key])) {
-                    // loop through array
-                    for (let i = 0; i < obj[key].length; i++) {
-                        if (typeof obj[key][i] === 'object') {
-                            // call function recursively only for objects
-                            await this.findAsyncFetches(obj[key][i]);
-                        }
-                    }
-                } else {
-                    // call function recursively for object
-                    await this.findAsyncFetches(obj[key]);
-                }
-            }
+    private async injectInAsyncFetchObject(asyncFetchObject: any): Promise<void> {
+        const endpoint = asyncFetchObject.api.endpoint;
+        const url = getConfiguration<string>(CONSTANTS.configKeyTenantUrl) ?? "";
+        const token = getConfiguration<string>(CONSTANTS.configKeyToken) ?? "";
+        const tokenHeaderName = getConfiguration<string>(CONSTANTS.configKeyTokenHeaderName) ?? "";
+
+        var response = await getApiCall(url + endpoint, token, tokenHeaderName);
+        if (response.status < 200 || response.status >= 300) {
+            showMessage(
+                vscode,
+                `GET to ${url} failed: ${response.message}`,
+                MessageType.Error
+            );
+        } else {
+            let responseObject = JSON.parse(response.value);
+            asyncFetchObject.result = responseObject;
         }
-    }
-
-    private async injectInAsyncFetchObject(asyncFetch: any): Promise<void> {
-        const endpoint = asyncFetch.api.endpoint;
-        const url = vscode.workspace.getConfiguration().get<string>(CONSTANTS.configKeyTenantUrl) ?? "";
-        const token = vscode.workspace.getConfiguration().get<string>(CONSTANTS.configKeyToken) ?? "";
-        const tokenHeaderName = vscode.workspace.getConfiguration().get<string>(CONSTANTS.configKeyTokenHeaderName) ?? "";
-
-        var response = await this._getApiCall(url + endpoint, token, tokenHeaderName);
-        let responseObject = JSON.parse(response.value);
-        asyncFetch.result = responseObject;
     }
   
 
@@ -210,61 +187,5 @@ class WebPreview extends Disposable implements vscode.Disposable {
         }
         JSON.parse(content);
         return content;
-    }
-
-
-    private async _getApiCall(url:string, token:string, tokenHeaderName: string): Promise<ResponseObject> {
-        let result: ResponseObject;
-        try {
-            let headers: any = {};
-            headers[tokenHeaderName] = token;
-
-          const response = await axios({
-                method: "GET",
-                url: url,
-                responseType: 'arraybuffer',
-                responseEncoding: "binary",
-                headers: {
-                    ...headers
-                }
-            });
-    
-          let value: string = Buffer.from(response.data).toString();
-    
-          result = {
-            status: response.status,
-            statusText: response.statusText,
-            value: value,
-            message: ''
-          };
-    
-        } catch (err:any) {
-    
-          result = {
-            status: err.response.status,
-            statusText: err.response.statusText,
-            value: '',
-            message: this._getMessageFromError(err)
-          };
-
-          vscode.window.showErrorMessage(`JSONForms Web-Preview: GET to ${url} failed: ${result.message}`);
-        }
-    
-        return result;
-    };
-
-    private _getMessageFromError(err:any) : string {
-        let message: string;
-        if (err?.response?.data.hasOwnProperty('errors')) {
-            message = err.response.data.errors[0]?.message;
-        } else if (err?.response?.data?.hasOwnProperty('Message')) {
-            message = err.response.data.Message;
-        } else if (err.hasOwnProperty('message')) {
-            message = err.message;
-        } else {
-            message = '';
-        }
-
-        return message;
     }
 }
