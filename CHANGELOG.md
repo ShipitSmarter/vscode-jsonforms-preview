@@ -1,5 +1,8 @@
 # Change Log
 
+## 1.0.4
+- Fixed issue with base64 encoding
+
 ## 1.0.3
 - Improved error handling
 - Improved documentation
