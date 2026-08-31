@@ -3,15 +3,17 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none'; frame-src {FRAME_SRC}; script-src 'nonce-{NONCE}'; style-src 'unsafe-inline';">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Preview</title>
 </head>
 
 <body>
     <iframe width="100%" style="display: block; height: 100vh !important;" id="frame" src='{URL}'
-        sandbox="allow-scripts allow-same-origin allow-modal"> </iframe>
+        sandbox="allow-scripts allow-same-origin allow-modals"> </iframe>
 
-    <script>
+    <script nonce="{NONCE}">
         const vscode = acquireVsCodeApi();
         const previousState = vscode.getState();  
 

@@ -138,6 +138,13 @@ class WebPreview extends Disposable implements vscode.Disposable {
         // Replace the renderer URL
         html = html.replace("{URL}", this._renderUrl);
 
+        // Content-Security-Policy: allow the remote renderer origin as an iframe
+        // source and a nonce for our own inline bootstrap script.
+        const nonce = getNonce();
+        const frameSrc = this.getFrameSrc(this._renderUrl);
+        html = html.replace(/{NONCE}/g, nonce);
+        html = html.replace("{FRAME_SRC}", frameSrc);
+
         
         // BASE64 encode the content since we need to ensure there are no escape characters in it
         const encSchem = base64Encode(this._schemaContent);
@@ -203,4 +210,24 @@ class WebPreview extends Disposable implements vscode.Disposable {
         JSON.parse(content);
         return content;
     }
+
+    // Derive the CSP frame-src value from the configured render URL.
+    // Falls back to the raw value if it cannot be parsed as a URL.
+    private getFrameSrc(renderUrl: string): string{
+        try {
+            return new URL(renderUrl).origin;
+        } catch {
+            return renderUrl;
+        }
+    }
+}
+
+// Generate a random nonce for the webview Content-Security-Policy.
+function getNonce(): string {
+    let text = "";
+    const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    for (let i = 0; i < 32; i++) {
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+    return text;
 }
