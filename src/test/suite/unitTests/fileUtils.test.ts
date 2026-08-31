@@ -1,43 +1,36 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import * as mockFs from 'mock-fs';
-
 import * as assert from 'assert';
-import * as vscode from 'vscode';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 
 import {getCompanionFilePath} from "../../../utils/fileUtils";
 
-
 suite('File utils tests', () => {
-	vscode.window.showInformationMessage('Start all tests.');
+	let tmpDir: string;
+
+	suiteSetup(() => {
+		// Use a real temporary directory instead of an fs mock. Mocking libraries
+		// such as mock-fs fail to intercept fs calls on modern Node versions,
+		// causing these tests to fall through to the real filesystem and fail.
+		tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'jsonforms-preview-'));
+		fs.writeFileSync(path.join(tmpDir, 'test.schema.json'), '{}');
+		fs.writeFileSync(path.join(tmpDir, 'test.uischema.json'), '{}');
+	});
 
 	suiteTeardown(() => {
-        mockFs.restore();
-    });
+		fs.rmSync(tmpDir, {recursive: true, force: true});
+	});
 
 	test('Test get file path from schema', () => {
-		mockFs({
-			'schemas': {
-				'test.schema.json': '{}',
-				'test.uischema.json': '{}'
-				}
-			}
-		);
-
-		const filePath = "schemas/test.schema.json";
+		const filePath = path.join(tmpDir, 'test.schema.json');
 		const companion = getCompanionFilePath(filePath);
-		assert.equal(companion, "schemas/test.uischema.json");
+		assert.equal(companion, path.join(tmpDir, 'test.uischema.json'));
 	});
-	test('Test get file path from uischema', () => {
-		mockFs({
-			'schemas': {
-				'test.schema.json': '{}',
-				'test.uischema.json': '{}'
-				}
-			}
-		);
 
-		const filePath = "schemas/test.uischema.json";
+	test('Test get file path from uischema', () => {
+		const filePath = path.join(tmpDir, 'test.uischema.json');
 		const companion = getCompanionFilePath(filePath);
-		assert.equal(companion, "schemas/test.schema.json");
+		assert.equal(companion, path.join(tmpDir, 'test.schema.json'));
 	});
 });
