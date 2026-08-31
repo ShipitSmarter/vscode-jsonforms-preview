@@ -1,5 +1,10 @@
 # Change Log
 
+## 1.0.5
+- Fix invalid iframe sandbox flag (`allow-modal` → `allow-modals`) rejected by VSCode 1.135.0+
+- Add a Content-Security-Policy and script nonce to the webview (resolves the "webview without a content security policy" warning)
+- Scope `tsconfig.json` to `src` so the build no longer picks up files under `examples/`
+
 ## 1.0.4
 - Fixed issue with base64 encoding
 
