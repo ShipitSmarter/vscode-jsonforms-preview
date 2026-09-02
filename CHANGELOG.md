@@ -1,5 +1,13 @@
 # Change Log
 
+## 1.2.0
+- Added a fast plain-node unit test layer (`npm run test:unit`) and vscode-host integration tests locking the webview wire protocol (frame.html `{TOKEN}` scheme, base64 SCHEMA/UI_SCHEMA payloads, READY/DATA postMessage contract) before refactoring
+- Extracted pure helpers out of `WebPreview`: `utils/htmlBuilder.ts` (HTML/token templating, nonce, CSP frame-src) and `utils/asyncFetch.ts` (async-fetch injection, dependency-injected)
+- Eliminated all `any` typing in touched files (`webPreview.ts`, `utils/general.ts`, `utils/messages.ts`, `utils/calls.ts`, `extension.ts`)
+- Replaced `axios` with Node's native `fetch`; removed the `axios` dependency entirely
+- Replaced `fs.readFileSync` with `vscode.workspace.fs`; `WebPreview` now resolves paths and reads file content asynchronously via a `create()` factory before construction
+- No wire-protocol or observable behavior changes: the frame.html `{TOKEN}` scheme and READY/DATA/SCHEMA/UI_SCHEMA postMessage contract remain byte-identical (verified by the new tests)
+
 ## 1.1.0
 - Refreshed dependencies and dev tooling: TypeScript 5.9, webpack 5.110, ts-loader 9.6, html-loader 5, axios 1.20, yaml 2.9, @vscode/vsce 3, @types/node 24, @types/vscode ^1.134.0
 - Bumped `engines.vscode` to `^1.134.0`
