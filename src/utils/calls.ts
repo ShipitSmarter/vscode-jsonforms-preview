@@ -1,17 +1,30 @@
 
 import axios from 'axios';
 
-type ResponseObject = {
+export type ResponseObject = {
     status: number;
     statusText: string;
     value: string;
     message: string;
 };
 
+interface AxiosErrorLike {
+    response?: {
+        status: number;
+        statusText: string;
+        data?: unknown;
+    };
+    message?: string;
+}
+
+function isAxiosErrorLike(err: unknown): err is AxiosErrorLike {
+    return typeof err === 'object' && err !== null;
+}
+
 export async function getApiCall(url: string, token: string, tokenHeaderName: string): Promise<ResponseObject> {
     let result: ResponseObject;
     try {
-        let headers: any = {};
+        const headers: Record<string, string> = {};
         if (tokenHeaderName.length > 0) {
             headers[tokenHeaderName] = token;
         }
@@ -26,7 +39,7 @@ export async function getApiCall(url: string, token: string, tokenHeaderName: st
             }
         });
 
-        let value: string = Buffer.from(response.data).toString();
+        const value: string = Buffer.from(response.data).toString();
 
         result = {
             status: response.status,
@@ -35,29 +48,37 @@ export async function getApiCall(url: string, token: string, tokenHeaderName: st
             message: ''
         };
 
-    } catch (err: any) {
+    } catch (err: unknown) {
+        const response = isAxiosErrorLike(err) ? err.response : undefined;
 
         result = {
-            status: err.response.status,
-            statusText: err.response.statusText,
+            status: response?.status ?? 0,
+            statusText: response?.statusText ?? '',
             value: '',
             message: getMessageFromError(err)
         };
     }
 
     return result;
-};
+}
 
-export function getMessageFromError(err: any): string {
-    if (err?.response?.data.hasOwnProperty('errors') && 
-        Array.isArray(err.response.data.errors) && 
-        err.response.data.errors.length > 0) {
-        return err.response.data.errors[0]?.message;
-    } else if (err?.response?.data?.hasOwnProperty('Message')) {
-        return err.response.data.Message;
-    } else if (err.hasOwnProperty('message')) {
+export function getMessageFromError(err: unknown): string {
+    if (!isAxiosErrorLike(err)) {
+        return '';
+    }
+
+    const data = err.response?.data as Record<string, unknown> | undefined;
+
+    if (data && Object.prototype.hasOwnProperty.call(data, 'errors') &&
+        Array.isArray(data.errors) &&
+        data.errors.length > 0) {
+        const firstError = data.errors[0] as Record<string, unknown> | undefined;
+        return (firstError?.message as string) ?? '';
+    } else if (data && Object.prototype.hasOwnProperty.call(data, 'Message')) {
+        return data.Message as string;
+    } else if (err.message !== undefined) {
         return err.message;
-    } 
-    
+    }
+
     return '';
 }
