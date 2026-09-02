@@ -2,32 +2,29 @@
 import * as assert from 'assert';
 import { getMessageFromError } from '../../utils/calls';
 
-// These tests lock the CURRENT axios-based error-extraction behavior of
-// getMessageFromError EXACTLY as it exists before the Step 4 axios->fetch
-// swap. Step 4 must adapt this function to the fetch Response shape and
-// will need to update/replace these tests as part of that change.
-suite('calls: getMessageFromError (axios-shaped baseline)', () => {
-    test('extracts first message from response.data.errors array', () => {
+// These tests lock the getMessageFromError contract AFTER the Step 4
+// axios->fetch swap: errors are now shaped as `{ body, message }`, where
+// `body` is the parsed JSON response body (or undefined) and `message` is
+// a generic fallback message, mirroring what getApiCall constructs from a
+// fetch Response.
+suite('calls: getMessageFromError (fetch-shaped)', () => {
+    test('extracts first message from body.errors array', () => {
         const err = {
-            response: {
-                data: {
-                    errors: [{ message: 'first error' }, { message: 'second error' }],
-                },
-            },
+            body: { errors: [{ message: 'first error' }, { message: 'second error' }] },
+            message: 'Request failed with status code 400',
         };
         assert.strictEqual(getMessageFromError(err), 'first error');
     });
 
-    test('extracts response.data.Message when errors array absent', () => {
+    test('extracts body.Message when errors array absent', () => {
         const err = {
-            response: {
-                data: { Message: 'top level message' },
-            },
+            body: { Message: 'top level message' },
+            message: 'Request failed with status code 500',
         };
         assert.strictEqual(getMessageFromError(err), 'top level message');
     });
 
-    test('falls back to err.message when no response.data shape matches', () => {
+    test('falls back to err.message when no body shape matches', () => {
         const err = { message: 'plain error message' };
         assert.strictEqual(getMessageFromError(err), 'plain error message');
     });
@@ -38,11 +35,17 @@ suite('calls: getMessageFromError (axios-shaped baseline)', () => {
     });
 
     test('empty errors array falls through to Message check', () => {
-        const err = {
-            response: {
-                data: { errors: [], Message: 'fallback message' },
-            },
-        };
+        const err = { body: { errors: [], Message: 'fallback message' } };
         assert.strictEqual(getMessageFromError(err), 'fallback message');
+    });
+
+    test('returns empty string for non-object input', () => {
+        assert.strictEqual(getMessageFromError(undefined), '');
+        assert.strictEqual(getMessageFromError('plain string'), '');
+    });
+
+    test('handles a real Error instance (network failure) via its message', () => {
+        const err = new Error('fetch failed');
+        assert.strictEqual(getMessageFromError(err), 'fetch failed');
     });
 });

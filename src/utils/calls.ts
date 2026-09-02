@@ -1,6 +1,3 @@
-
-import axios from 'axios';
-
 export type ResponseObject = {
     status: number;
     statusText: string;
@@ -8,40 +5,40 @@ export type ResponseObject = {
     message: string;
 };
 
-interface AxiosErrorLike {
-    response?: {
-        status: number;
-        statusText: string;
-        data?: unknown;
-    };
+interface ErrorLike {
+    body?: unknown;
     message?: string;
 }
 
-function isAxiosErrorLike(err: unknown): err is AxiosErrorLike {
+function isErrorLike(err: unknown): err is ErrorLike {
     return typeof err === 'object' && err !== null;
 }
 
 export async function getApiCall(url: string, token: string, tokenHeaderName: string): Promise<ResponseObject> {
-    let result: ResponseObject;
     try {
         const headers: Record<string, string> = {};
         if (tokenHeaderName.length > 0) {
             headers[tokenHeaderName] = token;
         }
 
-        const response = await axios({
+        const response = await fetch(url, {
             method: "GET",
-            url: url,
-            responseType: 'arraybuffer',
-            responseEncoding: "binary",
-            headers: {
-                ...headers
-            }
+            headers: headers,
         });
 
-        const value: string = Buffer.from(response.data).toString();
+        const buffer = await response.arrayBuffer();
+        const value = Buffer.from(buffer).toString();
 
-        result = {
+        if (!response.ok) {
+            return {
+                status: response.status,
+                statusText: response.statusText,
+                value: '',
+                message: getMessageFromError({ body: tryParseJson(value), message: `Request failed with status code ${response.status}` })
+            };
+        }
+
+        return {
             status: response.status,
             statusText: response.statusText,
             value: value,
@@ -49,25 +46,29 @@ export async function getApiCall(url: string, token: string, tokenHeaderName: st
         };
 
     } catch (err: unknown) {
-        const response = isAxiosErrorLike(err) ? err.response : undefined;
-
-        result = {
-            status: response?.status ?? 0,
-            statusText: response?.statusText ?? '',
+        return {
+            status: 0,
+            statusText: '',
             value: '',
             message: getMessageFromError(err)
         };
     }
+}
 
-    return result;
+function tryParseJson(value: string): unknown {
+    try {
+        return JSON.parse(value);
+    } catch {
+        return undefined;
+    }
 }
 
 export function getMessageFromError(err: unknown): string {
-    if (!isAxiosErrorLike(err)) {
+    if (!isErrorLike(err)) {
         return '';
     }
 
-    const data = err.response?.data as Record<string, unknown> | undefined;
+    const data = err.body as Record<string, unknown> | undefined;
 
     if (data && Object.prototype.hasOwnProperty.call(data, 'errors') &&
         Array.isArray(data.errors) &&
