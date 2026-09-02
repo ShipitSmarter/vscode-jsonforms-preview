@@ -22,38 +22,38 @@ suite('fileUtils: getCompanionFilePath', () => {
         fs.rmSync(tmpDir, { recursive: true, force: true });
     });
 
-    test('resolves uischema companion from schema (tmp fixture)', () => {
+    test('resolves uischema companion from schema (tmp fixture)', async () => {
         const filePath = path.join(tmpDir, 'test.schema.json');
-        assert.strictEqual(getCompanionFilePath(filePath), path.join(tmpDir, 'test.uischema.json'));
+        assert.strictEqual(await getCompanionFilePath(filePath), path.join(tmpDir, 'test.uischema.json'));
     });
 
-    test('resolves schema companion from uischema (tmp fixture)', () => {
+    test('resolves schema companion from uischema (tmp fixture)', async () => {
         const filePath = path.join(tmpDir, 'test.uischema.json');
-        assert.strictEqual(getCompanionFilePath(filePath), path.join(tmpDir, 'test.schema.json'));
+        assert.strictEqual(await getCompanionFilePath(filePath), path.join(tmpDir, 'test.schema.json'));
     });
 
-    test('resolves uischema companion from schema (DPD real fixture)', function () {
+    test('resolves uischema companion from schema (DPD real fixture)', async function () {
         if (!fs.existsSync(DPD_SCHEMA) || !fs.existsSync(DPD_UISCHEMA)) {
             this.skip();
         }
-        assert.strictEqual(getCompanionFilePath(DPD_SCHEMA), DPD_UISCHEMA);
+        assert.strictEqual(await getCompanionFilePath(DPD_SCHEMA), DPD_UISCHEMA);
     });
 
-    test('resolves schema companion from uischema (DPD real fixture)', function () {
+    test('resolves schema companion from uischema (DPD real fixture)', async function () {
         if (!fs.existsSync(DPD_SCHEMA) || !fs.existsSync(DPD_UISCHEMA)) {
             this.skip();
         }
-        assert.strictEqual(getCompanionFilePath(DPD_UISCHEMA), DPD_SCHEMA);
+        assert.strictEqual(await getCompanionFilePath(DPD_UISCHEMA), DPD_SCHEMA);
     });
 
-    test('throws when the input file does not exist', () => {
-        assert.throws(() => getCompanionFilePath(path.join(tmpDir, 'missing.schema.json')));
+    test('throws when the input file does not exist', async () => {
+        await assert.rejects(() => getCompanionFilePath(path.join(tmpDir, 'missing.schema.json')));
     });
 
-    test('throws when no companion file exists', () => {
+    test('throws when no companion file exists', async () => {
         const lonely = path.join(tmpDir, 'lonely.schema.json');
         fs.writeFileSync(lonely, '{}');
-        assert.throws(() => getCompanionFilePath(lonely));
+        await assert.rejects(() => getCompanionFilePath(lonely));
         fs.rmSync(lonely);
     });
 });

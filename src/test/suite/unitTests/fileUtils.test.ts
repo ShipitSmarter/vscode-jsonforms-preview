@@ -22,15 +22,15 @@ suite('File utils tests', () => {
 		fs.rmSync(tmpDir, {recursive: true, force: true});
 	});
 
-	test('Test get file path from schema', () => {
+	test('Test get file path from schema', async () => {
 		const filePath = path.join(tmpDir, 'test.schema.json');
-		const companion = getCompanionFilePath(filePath);
+		const companion = await getCompanionFilePath(filePath);
 		assert.equal(companion, path.join(tmpDir, 'test.uischema.json'));
 	});
 
-	test('Test get file path from uischema', () => {
+	test('Test get file path from uischema', async () => {
 		const filePath = path.join(tmpDir, 'test.uischema.json');
-		const companion = getCompanionFilePath(filePath);
+		const companion = await getCompanionFilePath(filePath);
 		assert.equal(companion, path.join(tmpDir, 'test.schema.json'));
 	});
 });

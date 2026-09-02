@@ -1,7 +1,5 @@
 import * as vscode from 'vscode';
-import * as fs from 'fs';
 import * as YAML from 'yaml';
-import path = require("path");
 import { CONSTANTS } from "./constants";
 import { debounce } from './utils/debounce';
 import { showMessage, MessageType } from './utils/messages';
@@ -15,10 +13,23 @@ import frameTemplate from './frame.html';
 
 export async function showPreview(filePath: string): Promise<void> {
     // Initialize the preview
-    const preview = new WebPreview(filePath);
+    const preview = await WebPreview.create(filePath);
 
     // Render preview
     await preview.createPreview();
+}
+
+async function readFileContent(filePath: string): Promise<string> {
+    const bytes = await vscode.workspace.fs.readFile(vscode.Uri.file(filePath));
+    return new TextDecoder('utf-8').decode(bytes);
+}
+
+interface WebPreviewInit {
+    renderUrl: string;
+    schemaPath: string;
+    uiSchemaPath: string;
+    schemaContent: string;
+    uiSchemaContent: string;
 }
 
 class WebPreview extends Disposable implements vscode.Disposable {
@@ -33,10 +44,9 @@ class WebPreview extends Disposable implements vscode.Disposable {
 
     private _debouncedTextUpdate: () => void;
 
-    public constructor(filePath: string) {
-        super();
-
-        // Fetch configured URL from configuration
+    // Resolve file paths and read content (async IO) before constructing the
+    // instance, so the constructor itself performs no IO.
+    public static async create(filePath: string): Promise<WebPreview> {
         const url = getConfiguration<string>(CONSTANTS.configKeyRenderUrl);
         if (!url) {
             showMessage(
@@ -45,16 +55,18 @@ class WebPreview extends Disposable implements vscode.Disposable {
             );
             throw new Error("No render URL configured");
         }
-        this._renderUrl = url;
+
+        let schemaPath: string;
+        let uiSchemaPath: string;
 
         // Work out correct filepaths
         if (filePath && isSchemaFile(filePath)) {
-            this._schemaPath = filePath;
-            this._uiSchemaPath = getCompanionFilePath(filePath);
+            schemaPath = filePath;
+            uiSchemaPath = await getCompanionFilePath(filePath);
         }
         else if (!isSchemaFile(filePath)) {
-            this._uiSchemaPath = filePath;
-            this._schemaPath = getCompanionFilePath(filePath);
+            uiSchemaPath = filePath;
+            schemaPath = await getCompanionFilePath(filePath);
         }
         else {
             showMessage(
@@ -64,9 +76,26 @@ class WebPreview extends Disposable implements vscode.Disposable {
             throw new Error("Invalid file selected");
         }
 
-        // Get content
-        this._schemaContent = fs.readFileSync(this._schemaPath, 'utf8');
-        this._uiSchemaContent = fs.readFileSync(this._uiSchemaPath, 'utf8');
+        const schemaContent = await readFileContent(schemaPath);
+        const uiSchemaContent = await readFileContent(uiSchemaPath);
+
+        return new WebPreview({
+            renderUrl: url,
+            schemaPath: schemaPath,
+            uiSchemaPath: uiSchemaPath,
+            schemaContent: schemaContent,
+            uiSchemaContent: uiSchemaContent,
+        });
+    }
+
+    private constructor(init: WebPreviewInit) {
+        super();
+
+        this._renderUrl = init.renderUrl;
+        this._schemaPath = init.schemaPath;
+        this._uiSchemaPath = init.uiSchemaPath;
+        this._schemaContent = init.schemaContent;
+        this._uiSchemaContent = init.uiSchemaContent;
 
         // Create the webview panel
         this._panel = this.createPanel();
