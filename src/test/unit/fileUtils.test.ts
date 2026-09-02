@@ -5,9 +5,12 @@ import * as path from 'path';
 
 import { getCompanionFilePath, isJson } from '../../utils/fileUtils';
 
-const DPD_DIR = '/Users/jeff/github/stitch-integrations/files/carriers/v2/dpd/meta-api/ordering';
-const DPD_SCHEMA = path.join(DPD_DIR, 'ordering.schema.json');
-const DPD_UISCHEMA = path.join(DPD_DIR, 'ordering.uischema.json');
+// Repo-local fixture (real DPD ordering schema/uischema copied in) so tests are
+// portable across machines and CI. Resolved relative to the compiled test file
+// (out/test/unit) back to the source fixtures directory.
+const FIXTURE_DIR = path.resolve(__dirname, '../../../src/test/fixtures');
+const DPD_SCHEMA = path.join(FIXTURE_DIR, 'ordering.schema.json');
+const DPD_UISCHEMA = path.join(FIXTURE_DIR, 'ordering.uischema.json');
 
 suite('fileUtils: getCompanionFilePath', () => {
     let tmpDir: string;

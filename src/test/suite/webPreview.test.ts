@@ -1,11 +1,15 @@
 import * as assert from 'assert';
+import * as path from 'path';
 import * as vscode from 'vscode';
 
 import { showPreview } from '../../webPreview';
 import { CONSTANTS } from '../../constants';
 
-const DPD_DIR = '/Users/jeff/github/stitch-integrations/files/carriers/v2/dpd/meta-api/ordering';
-const DPD_UISCHEMA = `${DPD_DIR}/ordering.uischema.json`;
+// Repo-local fixture (real DPD ordering schema/uischema copied in) so tests are
+// portable across machines and CI. Resolved relative to the compiled test file
+// (out/test/suite) back to the source fixtures directory.
+const DPD_DIR = path.resolve(__dirname, '../../../src/test/fixtures');
+const DPD_UISCHEMA = path.join(DPD_DIR, 'ordering.uischema.json');
 const RENDER_URL = 'https://example.com/renderer/path';
 
 suite('webPreview host integration (wire-protocol freeze)', () => {
