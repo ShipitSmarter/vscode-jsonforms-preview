@@ -1,25 +1,35 @@
 import * as vscode from 'vscode';
-import * as fs from 'fs';
 import * as YAML from 'yaml';
-import path = require("path");
 import { CONSTANTS } from "./constants";
 import { debounce } from './utils/debounce';
 import { showMessage, MessageType } from './utils/messages';
 import { Disposable } from './utils/dispose';
 import { isJson, isSchemaFile, getCompanionFilePath } from "./utils/fileUtils";
-import { getConfiguration, traverseObject, base64Encode } from "./utils/general";
-import { getApiCall, getMessageFromError } from './utils/calls';
+import { getConfiguration, base64Encode } from "./utils/general";
+import { injectAsyncFetchData } from "./utils/asyncFetch";
+import { buildPreviewHtml, getFrameSrc, generateNonce } from "./utils/htmlBuilder";
 
 import frameTemplate from './frame.html';
 
-export async function showPreview(
-    filePath: any){
-
+export async function showPreview(filePath: string): Promise<void> {
     // Initialize the preview
-    const preview = new WebPreview(filePath);
+    const preview = await WebPreview.create(filePath);
 
     // Render preview
     await preview.createPreview();
+}
+
+async function readFileContent(filePath: string): Promise<string> {
+    const bytes = await vscode.workspace.fs.readFile(vscode.Uri.file(filePath));
+    return new TextDecoder('utf-8').decode(bytes);
+}
+
+interface WebPreviewInit {
+    renderUrl: string;
+    schemaPath: string;
+    uiSchemaPath: string;
+    schemaContent: string;
+    uiSchemaContent: string;
 }
 
 class WebPreview extends Disposable implements vscode.Disposable {
@@ -34,42 +44,58 @@ class WebPreview extends Disposable implements vscode.Disposable {
 
     private _debouncedTextUpdate: () => void;
 
-    public constructor(filePath: any){       
-        super();
-
-        // Fetch configured URL from configuration
+    // Resolve file paths and read content (async IO) before constructing the
+    // instance, so the constructor itself performs no IO.
+    public static async create(filePath: string): Promise<WebPreview> {
         const url = getConfiguration<string>(CONSTANTS.configKeyRenderUrl);
-        if(!url){
+        if (!url) {
             showMessage(
-                vscode,
                 "No render URL configured",
                 MessageType.Error
             );
             throw new Error("No render URL configured");
         }
-        this._renderUrl = url;        
-        
+
+        let schemaPath: string;
+        let uiSchemaPath: string;
+
         // Work out correct filepaths
-        if(filePath && isSchemaFile(filePath)){
-            this._schemaPath = filePath;
-            this._uiSchemaPath = getCompanionFilePath(filePath);   
+        if (filePath && isSchemaFile(filePath)) {
+            schemaPath = filePath;
+            uiSchemaPath = await getCompanionFilePath(filePath);
         }
-        else if(!isSchemaFile(filePath)){
-            this._uiSchemaPath = filePath;
-            this._schemaPath = getCompanionFilePath(filePath);
+        else if (!isSchemaFile(filePath)) {
+            uiSchemaPath = filePath;
+            schemaPath = await getCompanionFilePath(filePath);
         }
-        else{
+        else {
             showMessage(
-                vscode,
                 "Invalid file selected",
                 MessageType.Error
             );
             throw new Error("Invalid file selected");
         }
 
-        // Get content
-        this._schemaContent = fs.readFileSync(this._schemaPath, 'utf8');
-        this._uiSchemaContent = fs.readFileSync(this._uiSchemaPath, 'utf8');
+        const schemaContent = await readFileContent(schemaPath);
+        const uiSchemaContent = await readFileContent(uiSchemaPath);
+
+        return new WebPreview({
+            renderUrl: url,
+            schemaPath: schemaPath,
+            uiSchemaPath: uiSchemaPath,
+            schemaContent: schemaContent,
+            uiSchemaContent: uiSchemaContent,
+        });
+    }
+
+    private constructor(init: WebPreviewInit) {
+        super();
+
+        this._renderUrl = init.renderUrl;
+        this._schemaPath = init.schemaPath;
+        this._uiSchemaPath = init.uiSchemaPath;
+        this._schemaContent = init.schemaContent;
+        this._uiSchemaContent = init.uiSchemaContent;
 
         // Create the webview panel
         this._panel = this.createPanel();
@@ -83,151 +109,91 @@ class WebPreview extends Disposable implements vscode.Disposable {
             if (e.document.isUntitled) { return; }
             if (e.document.uri.scheme === 'output') { return; }
 
-            if(e.document.uri.fsPath === this._schemaPath){
-                try{
+            if (e.document.uri.fsPath === this._schemaPath) {
+                try {
                     this._schemaContent = this.formatAndValidateContent(e.document.getText());
                 }
-                catch(e){
+                catch {
                     // Invalid JSON, so we don't update
                     return;
                 }
             }
-            else if(e.document.uri.fsPath === this._uiSchemaPath){
-                try{
+            else if (e.document.uri.fsPath === this._uiSchemaPath) {
+                try {
                     this._uiSchemaContent = this.formatAndValidateContent(e.document.getText());
                 }
-                catch(e){
+                catch {
                     // Invalid JSON, so we don't update
                     return;
                 }
             }
-            else{
+            else {
                 return;
             }
 
             this._debouncedTextUpdate();
-       });
+        });
 
-       // Register panel and events for disposal
-       this._register(this._panel);
-       this._register(onChangedTextEditor);
+        // Register panel and events for disposal
+        this._register(this._panel);
+        this._register(onChangedTextEditor);
     }
 
-    private createPanel(): vscode.WebviewPanel{
+    private createPanel(): vscode.WebviewPanel {
         const showOptions = {
             viewColumn: vscode.ViewColumn.Two,
             preserveFocus: true
         };
 
         const options = {
-            enableScripts: true,          
+            enableScripts: true,
         };
 
-        const panel = vscode.window.createWebviewPanel('WebPreview', 'JSONForms Web-Preview',  showOptions, options);
-       
-        return panel; 
+        const panel = vscode.window.createWebviewPanel('WebPreview', 'JSONForms Web-Preview', showOptions, options);
+
+        return panel;
     }
 
-    public async createPreview(){
+    public async createPreview(): Promise<void> {
         await this.updatePreview();
     }
 
-    private async updatePreview(){
-        let html = frameTemplate;
+    private async updatePreview(): Promise<void> {
+        const nonce = generateNonce();
+        const frameSrc = getFrameSrc(this._renderUrl);
 
-        // Replace the renderer URL
-        html = html.replace("{URL}", this._renderUrl);
-
-        // Content-Security-Policy: allow the remote renderer origin as an iframe
-        // source and a nonce for our own inline bootstrap script.
-        const nonce = getNonce();
-        const frameSrc = this.getFrameSrc(this._renderUrl);
-        html = html.replace(/{NONCE}/g, nonce);
-        html = html.replace("{FRAME_SRC}", frameSrc);
-
-        
         // BASE64 encode the content since we need to ensure there are no escape characters in it
         const encSchem = base64Encode(this._schemaContent);
         const uiSchemaContent = await this.injectAsyncFetchData(this._uiSchemaContent);
         const encUiSchem = base64Encode(uiSchemaContent);
 
-        // Replace the script tags with the content
-        html = html.replace("{SCHEMA}", "SCHEMA:" + encSchem);
-        html = html.replace("{UI_SCHEMA}", "UI_SCHEMA:" + encUiSchem);
-
-        // Set panel HTML
-        this._panel.webview.html = html;
+        this._panel.webview.html = buildPreviewHtml({
+            template: frameTemplate,
+            renderUrl: this._renderUrl,
+            nonce: nonce,
+            frameSrc: frameSrc,
+            schemaBase64: encSchem,
+            uiSchemaBase64: encUiSchem,
+        });
     }
 
     private async injectAsyncFetchData(stringData: string): Promise<string> {
-        // don't do anything if we don't have a valid tenant URL
-        let tenantUrl = getConfiguration<string>(CONSTANTS.configKeyTenantUrl);
-        if (!tenantUrl || tenantUrl.length === 0) {
-            return stringData;
-        }
-
-        let uiSchemaObject = JSON.parse(stringData);
-        await traverseObject(uiSchemaObject, "asyncFetch", "object", this.injectInAsyncFetchObject);
-        let result = JSON.stringify(uiSchemaObject);
-        return result;
+        return injectAsyncFetchData(stringData, {
+            tenantUrl: getConfiguration<string>(CONSTANTS.configKeyTenantUrl),
+            token: getConfiguration<string>(CONSTANTS.configKeyToken),
+            tokenHeaderName: getConfiguration<string>(CONSTANTS.configKeyTokenHeaderName),
+            onError: (message) => { showMessage(message, MessageType.Error); },
+        });
     }
 
-    private async injectInAsyncFetchObject(asyncFetchObject: any): Promise<void> {
-        const endpoint = asyncFetchObject.api.endpoint;
-        const url = getConfiguration<string>(CONSTANTS.configKeyTenantUrl) ?? "";
-        const token = getConfiguration<string>(CONSTANTS.configKeyToken) ?? "";
-        const tokenHeaderName = getConfiguration<string>(CONSTANTS.configKeyTokenHeaderName) ?? "";
-
-        var response = await getApiCall(url + endpoint, token, tokenHeaderName);
-        if (response.status < 200 || response.status >= 300) {
-            showMessage(
-                vscode,
-                `GET to ${url + endpoint} failed: ${response.message}`,
-                MessageType.Error
-            );
-        } else {
-            let responseObject: any = {};
-            try {
-                responseObject = JSON.parse(response.value);
-                asyncFetchObject.result = responseObject;
-            } catch (err: any) {
-                showMessage(
-                    vscode,
-                    `GET to ${url + endpoint} returned invalid JSON: ${getMessageFromError(err)}`,
-                    MessageType.Error
-                );
-            }
-        }
-    }
-  
     // Format and validate the content
     // Will throw if invalid
-    private formatAndValidateContent(content: string): string{
-        if(!isJson(content)){
-            let yam = YAML.parse(content);
+    private formatAndValidateContent(content: string): string {
+        if (!isJson(content)) {
+            const yam = YAML.parse(content);
             return JSON.stringify(yam);
         }
         JSON.parse(content);
         return content;
     }
-
-    // Derive the CSP frame-src value from the configured render URL.
-    // Falls back to the raw value if it cannot be parsed as a URL.
-    private getFrameSrc(renderUrl: string): string{
-        try {
-            return new URL(renderUrl).origin;
-        } catch {
-            return renderUrl;
-        }
-    }
-}
-
-// Generate a random nonce for the webview Content-Security-Policy.
-function getNonce(): string {
-    let text = "";
-    const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    for (let i = 0; i < 32; i++) {
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
-    }
-    return text;
 }

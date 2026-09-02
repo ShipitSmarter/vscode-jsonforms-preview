@@ -1,0 +1,271 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "shipmentReferences": {
+      "type": "array",
+      "title": "Select additional references that will be transmitted to the carrier",
+      "description": "List of shipment reference that will be transmitted to the carrier.",
+      "minItems": 0,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "anyOf": [
+          {
+            "const": "[reference]",
+            "title": "Shipment Reference"
+          },
+          {
+            "const": "[references.billOfLadingNumber]",
+            "title": "Bill of lading number"
+          },
+          {
+            "const": "[references.complaintNumber]",
+            "title": "Complaint number"
+          },
+          {
+            "const": "[references.containerNumber]",
+            "title": "Container number"
+          },
+          {
+            "const": "[references.customsClearanceNumber]",
+            "title": "Customs clearance number"
+          },
+          {
+            "const": "[references.customerPurchaseOrder]",
+            "title": "Customer purchase order number"
+          },
+          {
+            "const": "[references.purchaseOrder]",
+            "title": "Purchase order"
+          },
+          {
+            "const": "[references.flightNumber]",
+            "title": "Flight number"
+          },
+          {
+            "const": "[references.generalLedgerCode]",
+            "title": "General ledger code"
+          },
+          {
+            "const": "[commercialInvoice.invoiceNumber]",
+            "title": "Invoice number"
+          },
+          {
+            "const": "[references.sapDelivery]",
+            "title": "SAP delivery number"
+          },
+          {
+            "const": "[references.rmaNumber]",
+            "title": "RMA number"
+          },
+          {
+            "const": "[references.sapSalesOrder]",
+            "title": "SAP sales order number"
+          },
+          {
+            "const": "[references.shipmentNumber]",
+            "title": "Shipment number"
+          },
+          {
+            "const": "[references.voyage]",
+            "title": "Voyage"
+          },
+          {
+            "const": "[references.loadNumber]",
+            "title": "Load number"
+          }
+        ]
+      }
+    },
+    "labelExtensionToken": {
+      "type": "string",
+      "title": "Custom label extension",
+      "description": "ZPL text that is injected into the shipping label.",
+      "examples": [
+        {
+          "key": "carrier.reference",
+          "label": "Carrier reference"
+        },
+        {
+          "key": "instructions.carrierOriginDepot",
+          "label": "Carrier origin depot"
+        },
+        {
+          "key": "references.sapSalesOrder",
+          "label": "SAP Sales Order Number"
+        },
+        {
+          "key": "references.customerPurchaseOrder",
+          "label": "Customer purchase order number"
+        },
+        {
+          "key": "references.purchaseOrder",
+          "label": "Purchase order number"
+        }
+      ]
+    },
+    "customerBillingReferenceToken": {
+      "type": "string",
+      "examples": [
+        {
+          "key": "reference",
+          "label": "Shipment Reference"
+        },
+        {
+          "key": "references.billOfLadingNumber",
+          "label": "Bill of lading number"
+        },
+        {
+          "key": "references.complaintNumber",
+          "label": "Complaint number"
+        },
+        {
+          "key": "references.containerNumber",
+          "label": "Container number"
+        },
+        {
+          "key": "references.customsClearanceNumber",
+          "label": "Customs clearance number"
+        },
+        {
+          "key": "references.customerPurchaseOrder",
+          "label": "Customer purchase order number"
+        },
+        {
+          "key": "references.purchaseOrder",
+          "label": "Purchase order"
+        },
+        {
+          "key": "references.flightNumber",
+          "label": "Flight number"
+        },
+        {
+          "key": "references.generalLedgerCode",
+          "label": "General ledger code"
+        },
+        {
+          "key": "commercialInvoice.invoiceNumber",
+          "label": "Invoice number"
+        },
+        {
+          "key": "references.sapDelivery",
+          "label": "SAP delivery number"
+        },
+        {
+          "key": "references.rmaNumber",
+          "label": "RMA number"
+        },
+        {
+          "key": "references.sapSalesOrder",
+          "label": "SAP sales order number"
+        },
+        {
+          "key": "references.shipmentNumber",
+          "label": "Shipment number"
+        },
+        {
+          "key": "references.voyage",
+          "label": "Voyage"
+        },
+        {
+          "key": "references.loadNumber",
+          "label": "Load number"
+        }
+      ],
+      "title": "Customer Billing Reference",
+      "description": "Reference to use for customer billing reference"
+    },
+    "packageReference1Token": {
+      "type": "string",
+      "title": "Package reference 1 (shown on shipping label)",
+      "description": "If provided, this will be shown on the label.",
+      "examples": [
+        {
+          "key": "handlingUnits.references.reference",
+          "label": "Handling unit reference"
+        },
+        {
+          "key": "handlingUnits.description",
+          "label": "Handling unit description"
+        }
+      ]
+    },
+    "packageReference2Token": {
+      "type": "string",
+      "title": "Package reference 2 (shown on shipping label)",
+      "description": "If provided, this will be shown on the label.",
+      "examples": [
+        {
+          "key": "handlingUnits.references.reference",
+          "label": "Handling unit reference"
+        },
+        {
+          "key": "handlingUnits.description",
+          "label": "Handling unit description"
+        }
+      ]
+    },
+    "defaultComminvWeightGross": {
+      "type": "number",
+      "title": "Default gross weight for CommercialInvoiceLine item",
+      "description": "Put in the default gross weight of CommercialInvoiceLine item if it is empty in comminv."
+    },
+    "defaultComminvWeightNett": {
+      "type": "number",
+      "title": "Default nett weight for CommercialInvoiceLine item",
+      "description": "Put in the default nett weight of CommercialInvoiceLine item if it is empty in comminv."
+    },
+    "disableLqLabelOutbound": {
+      "type": "boolean",
+      "title": "Disable LQ labels for outbound shipments",
+      "description": "Per default, the LQ labels are generated in case of LQ shipments. Use this parameter to disable this label",
+      "default": false
+    },
+    "dpdExportReason": {
+      "title": "Default DPD export reason",
+      "description": "This is used if commercialInvoice.exportReasonType is not set/cannot be translated.",
+      "type": "string",
+      "oneOf": [
+        {
+          "const": "s01",
+          "title": "Sale"
+        },
+        {
+          "const": "s02",
+          "title": "Return/replacement"
+        },
+        {
+          "const": "s03",
+          "title": "Gift"
+        }
+      ],
+      "default": "s01"
+    },
+    "dpdPredictChannels": {
+      "type": "array",
+      "title": "Predict channels to use",
+      "description": "Select the communication methods that will be used to inform the recipient. The selected methods only apply if the shipment contains `residentialDelivery` service option. At least one method is mandatory for these type of shipments. The relevant contact details are to be present within the shipment (Email: receiver.contactEmail - Phone: receiver.contactPhone - SMS: receiver.contactPhone)",
+      "minItems": 0,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "anyOf": [
+          {
+            "const": "EMAIL",
+            "title": "Email"
+          },
+          {
+            "const": "PHONE",
+            "title": "Phone"
+          },
+          {
+            "const": "SMS",
+            "title": "Sms"
+          }
+        ]
+      }
+    }
+  },
+  "required": []
+}

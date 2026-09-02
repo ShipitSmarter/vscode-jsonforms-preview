@@ -1,0 +1,108 @@
+{
+  "type": "VerticalLayout",
+  "elements": [
+    {
+      "type": "Markdown",
+      "text": "## References\n\nConfigure additional references for your shipments.<br/>By default the shipment reference is transmitted as `reference 1`.<br/>\n### Shipment level references"
+    },
+    {
+      "type": "VerticalLayout",
+      "elements": [
+        {
+          "type": "Markdown",
+          "text": "**Shipment level references**\n\n By defadgdgult the shipment reference is transmitted to DPD.<br/>Additional references can be added by selecting them below.<br/>\n"
+        },
+        {
+          "type": "Control",
+          "scope": "#/properties/shipmentReferences",
+          "options": {
+            "renderWith": "multiSelect"
+          }
+        }
+      ]
+    },
+    {
+      "type": "Markdown",
+      "text": "**Customer Billing Reference**\n\n  \n\nUse the `SELECT DYNAMIC FIELD` button to select fields that will hold the data you want to use as an additional reference.<br/>You can even add fixed text before or after that field, eg \"my ref: [reference]\""
+    },
+    {
+      "type": "HorizontalLayout",
+      "elements": [
+        {
+          "type": "Control",
+          "scope": "#/properties/customerBillingReferenceToken"
+        }
+      ]
+    },
+    {
+      "type": "Markdown",
+      "text": "### Package level references"
+    },
+    {
+      "type": "HorizontalLayout",
+      "elements": [
+        {
+          "type": "Control",
+          "scope": "#/properties/packageReference1Token"
+        },
+        {
+          "type": "Control",
+          "scope": "#/properties/packageReference2Token"
+        }
+      ]
+    },
+    {
+      "type": "Markdown",
+      "text": "## Labels"
+    },
+    {
+      "type": "Control",
+      "scope": "#/properties/labelExtensionToken"
+    },
+    {
+      "type": "Markdown",
+      "text": "## Commercial invoice"
+    },
+    {
+      "type": "Control",
+      "scope": "#/properties/dpdExportReason"
+    },
+    {
+      "type": "HorizontalLayout",
+      "elements": [
+        {
+          "type": "Control",
+          "scope": "#/properties/defaultComminvWeightGross"
+        },
+        {
+          "type": "Control",
+          "scope": "#/properties/defaultComminvWeightNett"
+        }
+      ]
+    },
+    {
+      "type": "Markdown",
+      "text": "## Dangerous goods"
+    },
+    {
+      "type": "Control",
+      "scope": "#/properties/disableLqLabelOutbound"
+    },
+    {
+      "type": "Markdown",
+      "text": "## Predict service"
+    },
+    {
+      "type": "HorizontalLayout",
+      "elements": [
+        {
+          "type": "Control",
+          "scope": "#/properties/dpdPredictChannels",
+          "options": {
+            "renderWith": "multiSelect"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,63 +1,85 @@
-
-import axios from 'axios';
-
-type ResponseObject = {
+export type ResponseObject = {
     status: number;
     statusText: string;
     value: string;
     message: string;
 };
 
+interface ErrorLike {
+    body?: unknown;
+    message?: string;
+}
+
+function isErrorLike(err: unknown): err is ErrorLike {
+    return typeof err === 'object' && err !== null;
+}
+
 export async function getApiCall(url: string, token: string, tokenHeaderName: string): Promise<ResponseObject> {
-    let result: ResponseObject;
     try {
-        let headers: any = {};
+        const headers: Record<string, string> = {};
         if (tokenHeaderName.length > 0) {
             headers[tokenHeaderName] = token;
         }
 
-        const response = await axios({
+        const response = await fetch(url, {
             method: "GET",
-            url: url,
-            responseType: 'arraybuffer',
-            responseEncoding: "binary",
-            headers: {
-                ...headers
-            }
+            headers: headers,
         });
 
-        let value: string = Buffer.from(response.data).toString();
+        const buffer = await response.arrayBuffer();
+        const value = Buffer.from(buffer).toString();
 
-        result = {
+        if (!response.ok) {
+            return {
+                status: response.status,
+                statusText: response.statusText,
+                value: '',
+                message: getMessageFromError({ body: tryParseJson(value), message: `Request failed with status code ${response.status}` })
+            };
+        }
+
+        return {
             status: response.status,
             statusText: response.statusText,
             value: value,
             message: ''
         };
 
-    } catch (err: any) {
-
-        result = {
-            status: err.response.status,
-            statusText: err.response.statusText,
+    } catch (err: unknown) {
+        return {
+            status: 0,
+            statusText: '',
             value: '',
             message: getMessageFromError(err)
         };
     }
+}
 
-    return result;
-};
+function tryParseJson(value: string): unknown {
+    try {
+        return JSON.parse(value);
+    } catch {
+        return undefined;
+    }
+}
 
-export function getMessageFromError(err: any): string {
-    if (err?.response?.data.hasOwnProperty('errors') && 
-        Array.isArray(err.response.data.errors) && 
-        err.response.data.errors.length > 0) {
-        return err.response.data.errors[0]?.message;
-    } else if (err?.response?.data?.hasOwnProperty('Message')) {
-        return err.response.data.Message;
-    } else if (err.hasOwnProperty('message')) {
+export function getMessageFromError(err: unknown): string {
+    if (!isErrorLike(err)) {
+        return '';
+    }
+
+    const data = err.body as Record<string, unknown> | undefined;
+
+    if (data && Object.prototype.hasOwnProperty.call(data, 'errors') &&
+        Array.isArray(data.errors) &&
+        data.errors.length > 0) {
+        const firstError = data.errors[0] as Record<string, unknown> | undefined;
+        return (firstError?.message as string) ?? '';
+    } else if (data && Object.prototype.hasOwnProperty.call(data, 'Message')) {
+        return data.Message as string;
+    } else if (err.message !== undefined) {
         return err.message;
-    } 
-    
+    }
+
     return '';
 }

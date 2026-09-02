@@ -1,26 +1,21 @@
+import * as vscode from 'vscode';
+
 export enum MessageType {
     Error = "err",
     Warning = "war",
     Information = "info",
-  }
+}
 
 export const showMessage = async (
-    editorInstance: any,
     message: string,
     type?: string
-  ) => {
-    let result = null;
+): Promise<string | undefined> => {
     switch (type) {
-      case MessageType.Error:
-        result = editorInstance.window.showErrorMessage(message);
-        break;
-      case MessageType.Warning:
-        result = editorInstance.window.showWarningMessage(message);
-        break;
-      default:
-        result = editorInstance.window.showInformationMessage(message);
-        break;
+        case MessageType.Error:
+            return vscode.window.showErrorMessage(message);
+        case MessageType.Warning:
+            return vscode.window.showWarningMessage(message);
+        default:
+            return vscode.window.showInformationMessage(message);
     }
-    return result;
-  };
-  
+};
