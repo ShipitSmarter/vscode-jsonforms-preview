@@ -127,7 +127,8 @@
     "pretest": "npm run compile-tests && npm run compile && npm run lint",
     "lint": "eslint src",
     "test": "vscode-test",
-    "deploy": "vsce publish"
+    "deploy": "vsce publish",
+    "test:unit": "tsc -p . --outDir out && mocha --config .mocharc.unit.json"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",

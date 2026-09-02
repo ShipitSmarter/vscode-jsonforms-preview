@@ -1,0 +1,8 @@
+{
+  "spec": "out/test/unit/**/*.test.js",
+  "timeout": 5000,
+  "ui": "tdd",
+  "require": [
+    "./test-unit-setup.cjs"
+  ]
+}
